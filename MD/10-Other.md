@@ -22236,7 +22236,10 @@ export default {
     "origin": [
       "https://hp-kal.web.app",
       "https://hp-kal.firebaseapp.com",
-      "http://localhost:5173"
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173"
     ],
     "method": ["GET","HEAD","POST","PUT","DELETE","OPTIONS"],
     "responseHeader": ["Authorization","Content-Type","x-goog-meta-*","x-goog-resumable"],
@@ -22244,6 +22247,22 @@ export default {
   }
 ]
 ```
+
+**적용 상태**: ✅ Firebase Storage에 적용 완료 (2025-01-29)  
+**목적**: 브라우저에서 Firebase Storage 업로드 시 CORS 프리플라이트 요청 허용
+
+**Origin 설명**:
+- 프로덕션: `hp-kal.web.app`, `hp-kal.firebaseapp.com`
+- 로컬 개발: `localhost:3000`, `127.0.0.1:3000` (실제 개발 서버 포트)
+- 로컬 개발 (Vite 기본): `localhost:5173`, `127.0.0.1:5173` (대체 포트)
+
+**적용 방법**:
+```bash
+gcloud storage buckets update gs://hp-kal.firebasestorage.app --cors-file=cors.json
+```
+
+**수정 이력**:
+- 2025-01-29: `localhost:3000`, `127.0.0.1:3000`, `127.0.0.1:5173` 추가 (CORS 오류 해결)
 
 ## 214. src/styles/globals.css
 

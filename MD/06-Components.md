@@ -1887,7 +1887,7 @@ interface MenuEditDialogProps {
   menu: Menu | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (updates: { price?: number; description?: string; image?: string }, reason: string) => void;
+  onSave: (updates: { price?: number; description?: string; image?: string }, reason: string) => Promise<void>;
   loading?: boolean;
 }
 
