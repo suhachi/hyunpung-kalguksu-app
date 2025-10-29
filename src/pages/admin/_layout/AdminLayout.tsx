@@ -19,7 +19,8 @@ import {
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Credits } from '../../../components/shared/Credits';
-import { requireAdmin, mockLogout, type AuthUser } from '../../../lib/auth';
+import { useCurrentUser, logout, login, type AuthUser } from '../../../lib/auth';
+import { USE_FIREBASE } from '../../../config/env';
 import { toast } from 'sonner';
 
 export function AdminLayout() {
@@ -34,6 +35,17 @@ export function AdminLayout() {
 
   async function checkAuth() {
     try {
+      // Firebase Auth 사용 시 자동 로그인 시도
+      if (USE_FIREBASE) {
+        try {
+          await login('admin@hp-kal.com', 'admin1234'); // TODO: 환경 변수로 이동
+          console.log('자동 로그인 성공');
+        } catch (error: any) {
+          console.error('자동 로그인 실패:', error.message);
+          toast.error('관리자 로그인이 필요합니다.');
+        }
+      }
+
       const authUser = await requireAdmin();
       setUser(authUser);
     } catch (error) {
@@ -44,8 +56,8 @@ export function AdminLayout() {
     }
   }
 
-  function handleLogout() {
-    mockLogout();
+  async function handleLogout() {
+    await logout();
     navigate('/');
   }
 

@@ -6,6 +6,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { APP, ADMIN } from '../routes';
+import { auth, db } from './firebase';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { USE_FIREBASE } from '../config/env';
 
 // Mock 사용자 정보 (추후 Firebase Auth로 교체)
 export interface User {
@@ -27,23 +31,78 @@ const MOCK_ADMIN: User = {
 };
 
 /**
- * 현재 사용자 정보 반환 (Mock)
- * TODO: Firebase Auth 연동
+ * Firebase Auth 로그인
+ */
+export async function firebaseLogin(email: string, password: string): Promise<FirebaseUser> {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential.user;
+}
+
+/**
+ * Firebase Auth 로그아웃
+ */
+export async function firebaseLogout(): Promise<void> {
+  await signOut(auth);
+}
+
+/**
+ * Firestore에서 사용자 role 가져오기
+ */
+async function getUserRoleFromFirestore(uid: string): Promise<'customer' | 'admin' | 'owner' | null> {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return (data.role as 'customer' | 'admin' | 'owner') || 'customer';
+    }
+  } catch (error) {
+    console.error('Failed to get user role:', error);
+  }
+  return null;
+}
+
+/**
+ * 현재 사용자 정보 반환 (Firebase Auth 또는 Mock)
  */
 export function useCurrentUser(): User | null {
-  // localStorage에서 role 가져오기
-  const mockRole = localStorage.getItem('mockRole');
-  
-  // 쿼리 파라미터에서 role 가져오기 (?role=admin)
-  const urlParams = new URLSearchParams(window.location.search);
-  const role = urlParams.get('role') as 'customer' | 'admin' | null;
-  
-  // localStorage 또는 URL 파라미터로 관리자 체크
-  if (mockRole === 'owner' || role === 'admin') {
-    return MOCK_ADMIN;
-  }
-  
-  return MOCK_USER;
+  const [user, setUser] = React.useState<User | null>(null);
+
+  useEffect(() => {
+    if (USE_FIREBASE) {
+      // Firebase Auth 사용
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          const role = await getUserRoleFromFirestore(firebaseUser.uid);
+          if (role) {
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              role: role === 'owner' || role === 'admin' ? 'admin' : 'customer',
+            });
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      });
+
+      return () => unsubscribe();
+    } else {
+      // Mock 인증 사용
+      const mockRole = localStorage.getItem('mockRole');
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get('role') as 'customer' | 'admin' | null;
+
+      if (mockRole === 'owner' || role === 'admin') {
+        setUser(MOCK_ADMIN);
+      } else {
+        setUser(MOCK_USER);
+      }
+    }
+  }, []);
+
+  return user;
 }
 
 /**
@@ -123,11 +182,30 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * 로그인 (Firebase Auth 또는 Mock)
+ */
+export async function login(email?: string, password?: string): Promise<void> {
+  if (USE_FIREBASE && email && password) {
+    // Firebase Auth 로그인
+    try {
+      await firebaseLogin(email, password);
+      console.log('Firebase Auth 로그인 성공');
+    } catch (error: any) {
+      console.error('Firebase Auth 로그인 실패:', error);
+      throw error;
+    }
+  } else {
+    // Mock 로그인 (개발용)
+    mockLogin('admin');
+  }
+}
+
+/**
  * Mock 로그인 (테스트용)
- * TODO: Firebase Auth 로그인으로 교체
  */
 export function mockLogin(role: 'customer' | 'admin' = 'customer'): void {
   console.log(`Mock login as ${role}`);
+  localStorage.setItem('mockRole', role);
   if (role === 'admin') {
     window.location.href = `${ADMIN.root}?role=admin`;
   } else {
@@ -136,11 +214,22 @@ export function mockLogin(role: 'customer' | 'admin' = 'customer'): void {
 }
 
 /**
+ * 로그아웃 (Firebase Auth 또는 Mock)
+ */
+export async function logout(): Promise<void> {
+  if (USE_FIREBASE) {
+    await firebaseLogout();
+  } else {
+    mockLogout();
+  }
+}
+
+/**
  * Mock 로그아웃 (테스트용)
- * TODO: Firebase Auth 로그아웃으로 교체
  */
 export function mockLogout(): void {
   console.log('Mock logout');
+  localStorage.removeItem('mockRole');
   window.location.href = APP.home;
 }
 
