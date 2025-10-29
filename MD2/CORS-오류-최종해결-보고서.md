@@ -78,14 +78,20 @@ Max retry time for operation exceeded, please try again.
 
 ---
 
-### 2. 버킷에 적용 ✅ 완료
+### 2. 버킷에 적용 ✅ 완료 (두 버킷 모두 적용)
+
+**⚠️ 중요 발견**: 요청 URL은 `hp-kal.appspot.com`을 사용하므로 두 버킷 모두에 적용 필요
 
 **적용 방법**: gcloud CLI
 ```bash
+# Firebase Storage URL 버킷
 gcloud storage buckets update gs://hp-kal.firebasestorage.app --cors-file=cors.json
+
+# 실제 요청 URL 버킷 (중요!)
+gcloud storage buckets update gs://hp-kal.appspot.com --cors-file=cors.json
 ```
 
-**확인 결과**:
+**확인 결과 (hp-kal.appspot.com)**:
 ```yaml
 cors_config:
 - maxAgeSeconds: 3600
