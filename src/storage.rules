@@ -2,12 +2,16 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // 메뉴 이미지
+    // 메뉴 이미지 (경로 스코프: menus/{menuId}/, MIME: image/*, ≤5MB)
+    // Functions에서 생성한 orig_*, thumb_*, resized_* 파일은 Functions만 작성 가능
     match /menus/{menuId}/{fileName} {
       allow read: if true; // 모두 읽기 가능
-      allow write: if request.auth != null 
-                   && request.resource.size < 5 * 1024 * 1024 // 5MB 제한
-                   && request.resource.contentType.matches('image/.*');
+      allow write: if request.auth != null
+                   && !fileName.matches('orig_.*')  // orig_* 파일은 Functions만 생성
+                   && !fileName.matches('thumb_.*') // thumb_* 파일은 Functions만 생성
+                   && !fileName.matches('resized_.*') // resized_* 파일은 Functions만 생성
+                   && request.resource.size <= 5 * 1024 * 1024 // 5MB 제한
+                   && request.resource.contentType.matches('image/.*'); // 이미지 MIME만
     }
     
     // 리뷰 사진

@@ -462,3 +462,8 @@ export { createPayment, approvePayment, cancelPaymentFunction, refundPayment };
 // 배달 Webhook 엔드포인트
 // ============================================================================
 export { deliveryWebhook } from './delivery/webhook';
+
+// ============================================================================
+// 이미지 변환 파이프라인
+// ============================================================================
+export { onMenuImageFinalize } from './images/transform';
