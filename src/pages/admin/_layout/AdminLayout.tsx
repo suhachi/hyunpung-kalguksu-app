@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Credits } from '../../../components/shared/Credits';
-import { useCurrentUser, logout, type AuthUser } from '../../../lib/auth';
+import { useCurrentUser, logout } from '../../../lib/auth';
 import { toast } from 'sonner';
 
 export function AdminLayout() {
@@ -91,8 +91,8 @@ export function AdminLayout() {
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-[#F9F6F3] rounded-lg">
               <User className="w-4 h-4 text-[#8B7355]" />
-              <span className="text-[#333]">{user?.displayName}</span>
-              <span className="text-[#8B7355]">({user?.role})</span>
+              <span className="text-[#333]">{currentUser?.email || '관리자'}</span>
+              <span className="text-[#8B7355]">({currentUser?.role || 'admin'})</span>
             </div>
             <Button
               variant="ghost"
