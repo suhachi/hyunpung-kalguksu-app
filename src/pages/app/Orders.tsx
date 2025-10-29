@@ -10,10 +10,9 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Clock, MapPin, Package, CheckCircle, Star, RefreshCw } from "lucide-react";
+import type { OrderStatus } from "../../types/order";
 
-// 주문 상태 타입
-type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivering' | 'completed' | 'cancelled';
-
+// 로컬 Order 인터페이스 (간소화된 목록용)
 interface Order {
   id: string;
   orderNumber: string;
@@ -30,6 +29,7 @@ interface Order {
 }
 
 // Mock 데이터 (실제로는 API에서 가져옴)
+// 표준 OrderStatus로 매핑
 const mockOrders: Order[] = [
   {
     id: '1',
@@ -39,7 +39,7 @@ const mockOrders: Order[] = [
       { name: '물만두', quantity: 1, price: 5000 },
     ],
     totalAmount: 33000,
-    status: 'delivering',
+    status: 'preparing', // delivering → preparing (표준화)
     createdAt: '2025-10-29T09:30:00',
     deliveryAddress: '대구광역시 현풍읍',
     estimatedArrival: '10:45',
@@ -51,7 +51,7 @@ const mockOrders: Order[] = [
       { name: '닭칼국수', quantity: 1, price: 14000 },
     ],
     totalAmount: 14000,
-    status: 'completed',
+    status: 'completed', // 표준
     createdAt: '2025-10-28T18:20:00',
     deliveryAddress: '대구광역시 현풍읍',
   },
@@ -63,29 +63,28 @@ const mockOrders: Order[] = [
       { name: '물만두', quantity: 2, price: 5000 },
     ],
     totalAmount: 52000,
-    status: 'pending',
+    status: 'accepted', // pending → accepted
     createdAt: '2025-10-29T10:00:00',
     deliveryAddress: '대구광역시 현풍읍',
   },
 ];
 
+// 표준 OrderStatus에 맞춘 상태 설정
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
   pending: { label: '주문 접수', color: 'bg-gray-500', icon: <Clock className="w-4 h-4" /> },
-  confirmed: { label: '주문 확정', color: 'bg-blue-500', icon: <CheckCircle className="w-4 h-4" /> },
-  preparing: { label: '준비 중', color: 'bg-yellow-500', icon: <RefreshCw className="w-4 h-4" /> },
-  ready: { label: '배달 준비 완료', color: 'bg-orange-500', icon: <Package className="w-4 h-4" /> },
-  delivering: { label: '배달 중', color: 'bg-[#D61C1C]', icon: <MapPin className="w-4 h-4" /> },
+  accepted: { label: '주문 확정', color: 'bg-blue-500', icon: <CheckCircle className="w-4 h-4" /> },
+  preparing: { label: '조리 중', color: 'bg-yellow-500', icon: <RefreshCw className="w-4 h-4" /> },
   completed: { label: '배달 완료', color: 'bg-green-500', icon: <CheckCircle className="w-4 h-4" /> },
-  cancelled: { label: '주문 취소', color: 'bg-red-500', icon: <Clock className="w-4 h-4" /> },
+  canceled: { label: '주문 취소', color: 'bg-red-500', icon: <Clock className="w-4 h-4" /> },
 };
 
 export default function Orders() {
   const [activeTab, setActiveTab] = useState<'all' | 'ongoing' | 'completed'>('all');
 
-  // 필터링된 주문 목록
+  // 필터링된 주문 목록 (표준 OrderStatus 기준)
   const filteredOrders = mockOrders.filter(order => {
     if (activeTab === 'all') return true;
-    if (activeTab === 'ongoing') return ['pending', 'confirmed', 'preparing', 'ready', 'delivering'].includes(order.status);
+    if (activeTab === 'ongoing') return ['pending', 'accepted', 'preparing'].includes(order.status);
     if (activeTab === 'completed') return order.status === 'completed';
     return true;
   });
@@ -191,10 +190,10 @@ export default function Orders() {
 
                     {/* 액션 버튼 */}
                     <div className="flex gap-2 mt-3">
-                      {order.status === 'delivering' && (
+                      {(['pending', 'accepted', 'preparing'].includes(order.status)) && (
                         <Link to={`/order/${order.id}`} className="flex-1">
                           <Button variant="outline" className="w-full border-[#D61C1C] text-[#D61C1C] hover:bg-[#D61C1C]/10">
-                            배달 추적
+                            주문 현황
                           </Button>
                         </Link>
                       )}
