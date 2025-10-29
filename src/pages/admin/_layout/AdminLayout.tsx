@@ -19,38 +19,31 @@ import {
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Credits } from '../../../components/shared/Credits';
-import { useCurrentUser, logout, login, type AuthUser } from '../../../lib/auth';
-import { USE_FIREBASE } from '../../../config/env';
+import { useCurrentUser, logout, type AuthUser } from '../../../lib/auth';
 import { toast } from 'sonner';
 
 export function AdminLayout() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const currentUser = useCurrentUser(); // ✅ useCurrentUser hook 사용
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [currentUser]); // currentUser 변경 시 재확인
 
   async function checkAuth() {
     try {
-      // Firebase Auth 사용 시 자동 로그인 시도
-      if (USE_FIREBASE) {
-        try {
-          await login('admin@hp-kal.com', 'admin1234'); // TODO: 환경 변수로 이동
-          console.log('자동 로그인 성공');
-        } catch (error: any) {
-          console.error('자동 로그인 실패:', error.message);
-          toast.error('관리자 로그인이 필요합니다.');
-        }
+      // ✅ RequireAuth가 인증을 담당하므로 자동 로그인 코드 제거
+      // 관리자 권한 확인만 수행
+      if (!currentUser || currentUser.role !== 'admin') {
+        toast.error('관리자 권한이 필요합니다.');
+        navigate('/');
+        return;
       }
-
-      const authUser = await requireAdmin();
-      setUser(authUser);
     } catch (error) {
-      // requireAdmin이 리다이렉트 처리
       toast.error('관리자 권한이 필요합니다.');
+      navigate('/');
     } finally {
       setLoading(false);
     }

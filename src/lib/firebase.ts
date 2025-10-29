@@ -24,6 +24,7 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 // ✅ 명시적으로 버킷 URL 지정하여 올바른 버킷 사용 보장
+// 모든 업로드는 이 storage 인스턴스만 사용해야 함
 export const storage = getStorage(app, "gs://hp-kal.firebasestorage.app");
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 

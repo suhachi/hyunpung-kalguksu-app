@@ -43,3 +43,7 @@ export const BRAND = {
 export const DEV = {
   tools: "/dev",
 };
+
+export const AUTH = {
+  login: "/login",
+};

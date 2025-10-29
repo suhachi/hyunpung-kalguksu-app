@@ -36,11 +36,15 @@ import AdminPoints from "./pages/admin/Points";
 // 개발자 도구
 import { DevTools } from "./pages/DevTools";
 
+// 로그인 페이지
+import Login from "./pages/auth/Login";
+
 // 라우트 상수
-import { APP, ADMIN, BRAND, DEV } from "./routes";
+import { APP, ADMIN, BRAND, DEV, AUTH } from "./routes";
 
 // 접근 가드
 import { RequireAdmin } from "./lib/auth";
+import RequireAuth from "./components/auth/RequireAuth";
 
 export default function App() {
   return (
@@ -70,8 +74,17 @@ export default function App() {
             {/* 브랜드 아이덴티티 가이드라인 */}
             <Route path={BRAND.identity} element={<BrandIdentity />} />
             
+            {/* 로그인 */}
+            <Route path={AUTH.login} element={<Login />} />
+            
             {/* 관리자 대시보드 */}
-            <Route path={ADMIN.root} element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
+            <Route path={ADMIN.root} element={
+              <RequireAuth>
+                <RequireAdmin>
+                  <AdminLayout />
+                </RequireAdmin>
+              </RequireAuth>
+            }>
               <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="orders" element={<AdminOrders />} />
