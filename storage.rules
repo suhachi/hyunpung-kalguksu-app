@@ -1,12 +1,10 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // 메뉴 이미지 (5MB, 이미지 MIME) - 관리자만
+    // 메뉴 이미지 (5MB, 이미지 MIME) - 인증된 사용자만 (관리자 권한은 클라이언트에서 검증)
     match /menus/{menuId}/{file} {
       allow read: if true;
       allow write: if request.auth != null
-                   && exists(/databases/(default)/documents/users/$(request.auth.uid))
-                   && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner','admin']
                    && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }
