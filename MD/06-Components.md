@@ -1879,7 +1879,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { uploadMenuImage, deleteMenuImage } from '../../lib/admin/menuImages.api';
+import { uploadMenuImage, deleteMenuImage, extractFileNameFromUrl } from '../../lib/admin/menuImages.api';
 import { processImage } from '../../lib/imageUtils';
 import { toast } from 'sonner';
 
@@ -1954,8 +1954,21 @@ export function MenuEditDialog({
         updates.description = desc;
       }
 
-      // 이미지가 선택된 경우 업로드 (캐시 회피를 위해 타임스탬프 추가)
+      // 이미지가 선택된 경우 업로드 전 기존 이미지 삭제
       if (imageFile) {
+        // 기존 이미지 URL에서 파일명 추출하여 삭제
+        if (menu.image) {
+          const oldFileName = extractFileNameFromUrl(menu.image);
+          if (oldFileName) {
+            try {
+              await deleteMenuImage(menu.menuId, oldFileName);
+            } catch (e) {
+              // 삭제 실패해도 업로드는 계속 진행
+              console.warn('기존 이미지 삭제 실패:', e);
+            }
+          }
+        }
+
         const processed = await processImage(imageFile, { 
           maxWidth: 1600, 
           outputFormat: 'webp',
