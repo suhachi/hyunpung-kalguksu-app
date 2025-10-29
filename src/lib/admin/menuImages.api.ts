@@ -43,14 +43,35 @@ export async function uploadMenuImage(
 
 /**
  * 메뉴 이미지 삭제
+ * @param menuId 메뉴 ID
+ * @param fileName 삭제할 파일명 (기본값: image.webp, URL에서 추출 가능)
  */
-export async function deleteMenuImage(menuId: string): Promise<void> {
+export async function deleteMenuImage(menuId: string, fileName?: string): Promise<void> {
   const storage = getStorage(app);
-  const storageRef = ref(storage, `menus/${menuId}/image.webp`);
+  
+  // fileName이 없으면 기본값 사용
+  const targetFileName = fileName || 'image.webp';
+  const storageRef = ref(storage, `menus/${menuId}/${targetFileName}`);
+  
   try {
     await deleteObject(storageRef);
   } catch {
     // 존재하지 않아도 무시
+  }
+}
+
+/**
+ * URL에서 파일명 추출 (menus/{menuId}/ 이후 부분)
+ * 예: https://.../menus/menu-001/1234567890.webp → 1234567890.webp
+ */
+export function extractFileNameFromUrl(url: string): string | null {
+  if (!url) return null;
+  
+  try {
+    const match = url.match(/menus\/[^\/]+\/([^\/\?]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
   }
 }
 
