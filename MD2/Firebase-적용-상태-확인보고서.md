@@ -170,9 +170,15 @@ firebase hosting:sites:list
 2. ✅ **Storage Rules**: 배포 완료 (컴파일 성공 확인)
    - 인증된 사용자 + 파일 크기 + MIME 타입 체크
 
-3. ✅ **Firestore Indexes**: 배포 완료 (7개 인덱스 확인)
+3. ✅ **Firestore Rules**: 배포 완료 (컴파일 성공 확인)
+   - 모든 컬렉션 권한 규칙 정상
 
-4. ✅ **프로젝트 연결**: hp-kal 프로젝트 활성화됨
+4. ✅ **Firestore Indexes**: 배포 완료 (7개 인덱스 확인)
+   - 모든 필요한 인덱스 배포됨
+
+5. ✅ **프로젝트 연결**: hp-kal 프로젝트 활성화됨
+
+6. ✅ **Hosting 사이트**: 생성 및 URL 할당 완료
 
 ---
 
