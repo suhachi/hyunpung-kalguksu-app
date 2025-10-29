@@ -9965,12 +9965,14 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
     
-    // 메뉴 이미지
-    match /menus/{storeId}/{menuId}/{imageId} {
+    // 메뉴 이미지 (5MB, 관리자만)
+    match /menus/{menuId}/{file} {
       allow read: if true;
-      allow write: if request.auth != null 
-        && request.resource.size < 3 * 1024 * 1024  // 3MB
-        && request.resource.contentType.matches('image/.*');
+      allow write: if request.auth != null
+                   && exists(/databases/(default)/documents/users/$(request.auth.uid))
+                   && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner','admin']
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
     }
   }
 }
@@ -22085,27 +22087,28 @@ echo "  firebase functions:config:set nice.mid=\"YOUR_MID\" nice.key=\"YOUR_KEY\
 echo ""
 ```
 
-## 211. src/storage.rules
+## 211. storage.rules
 
 ```text
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // 메뉴 이미지
-    match /menus/{menuId}/{fileName} {
-      allow read: if true; // 모두 읽기 가능
-      allow write: if request.auth != null 
-                   && request.resource.size < 5 * 1024 * 1024 // 5MB 제한
+    // 메뉴 이미지 (5MB, 이미지 MIME) - 관리자만
+    match /menus/{menuId}/{file} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && exists(/databases/(default)/documents/users/$(request.auth.uid))
+                   && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner','admin']
+                   && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }
-    
-    // 리뷰 사진
-    match /reviews/{uid}/{rid}/{file} {
-      allow read: if true; // 모두 읽기 가능
-      allow write: if request.auth != null 
+
+    // 리뷰 사진 (3MB)
+    match /reviews/{uid}/{reviewId}/{fileId} {
+      allow read: if true;
+      allow write: if request.auth != null
                    && request.auth.uid == uid
-                   && request.resource.size < 3 * 1024 * 1024 // 3MB 제한
+                   && request.resource.size < 3 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }
   }
