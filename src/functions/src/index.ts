@@ -11,6 +11,14 @@ import { getStatusChangeMessage, getStatusChangeTitle } from './lib/report';
 import { authorizePayment, cancelPayment, issueCashReceipt } from './lib/nicepay';
 import { generateReceiptPDF, ReceiptData } from './lib/pdf';
 
+// 결제 Functions (NICEPAY)
+import {
+  createPayment,
+  approvePayment,
+  cancelPayment as cancelPaymentFunction,
+  refundPayment,
+} from './payments/nicepay';
+
 // Firebase Admin 초기화
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -444,3 +452,13 @@ export const requestCashReceipt = functions.https.onCall(
     }
   }
 );
+
+// ============================================================================
+// 새로운 결제 Functions (Idempotency 및 서명 검증 포함)
+// ============================================================================
+export { createPayment, approvePayment, cancelPaymentFunction, refundPayment };
+
+// ============================================================================
+// 배달 Webhook 엔드포인트
+// ============================================================================
+export { deliveryWebhook } from './delivery/webhook';
