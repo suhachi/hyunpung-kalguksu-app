@@ -17,6 +17,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { uploadMenuImage, deleteMenuImage } from '../../lib/admin/menuImages.api';
+import { processImage } from '../../lib/imageUtils';
 import { toast } from 'sonner';
 
 interface MenuEditDialogProps {
@@ -80,38 +81,41 @@ export function MenuEditDialog({
     try {
       const updates: { price?: number; description?: string; image?: string } = {};
 
-      if (priceChanged) {
-        updates.price = parseInt(price);
+      const priceValue = parseInt(price);
+      if (!isNaN(priceValue) && priceValue !== menu.price) {
+        updates.price = priceValue;
       }
 
-      if (descChanged) {
-        updates.description = description.trim();
+      const desc = description.trim();
+      if (desc !== menu.description) {
+        updates.description = desc;
       }
 
-      // 이미지 업로드 처리
+      // 이미지가 선택된 경우 업로드 (캐시 회피를 위해 타임스탬프 추가)
       if (imageFile) {
-        const url = await uploadMenuImage(menu.menuId, imageFile);
+        const processed = await processImage(imageFile, { 
+          maxWidth: 1600, 
+          outputFormat: 'webp',
+          quality: 0.86
+        });
+        // 캐시 회피를 위해 파일명에 타임스탬프 추가
+        const url = await uploadMenuImage(menu.menuId, processed, `${Date.now()}.webp`);
         updates.image = url;
       }
 
       if (Object.keys(updates).length === 0) {
-        toast.error('변경된 내용이 없습니다');
+        toast.info('변경된 내용이 없습니다.');
         setSaving(false);
         return;
       }
 
       await onSave(updates, makeReason());
       
-      // onSave가 성공하면 다이얼로그 닫기
-      // (onSave 내부에서 이미 닫히지만, 혹시 모를 상황 대비)
+      toast.success('저장 완료');
       onOpenChange(false);
     } catch (e: any) {
       console.error('Failed to save menu:', e);
-      // 에러 메시지는 onSave 내부에서 이미 표시됨
-      // 추가 에러 메시지는 필요시에만
-      if (!e?.handled) {
-        toast.error(e?.code || e?.message || '저장에 실패했습니다');
-      }
+      toast.error(e?.message ?? '저장 중 오류가 발생했습니다');
     } finally {
       setSaving(false); // ✅ 항상 복구
     }

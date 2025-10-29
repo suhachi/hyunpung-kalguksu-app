@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "https://hp-kal.web.app",
+      "https://hp-kal.firebaseapp.com",
+      "http://localhost:5173"
+    ],
+    "method": ["GET","HEAD","POST","PUT","DELETE","OPTIONS"],
+    "responseHeader": ["Authorization","Content-Type","x-goog-meta-*","x-goog-resumable"],
+    "maxAgeSeconds": 3600
+  }
+]
+
