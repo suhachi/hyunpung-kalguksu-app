@@ -107,24 +107,135 @@ export async function getCoupons(
 
 /**
  * 사용 가능한 쿠폰만 조회 (결제 시)
+ * 최소 금액, 만료일, 사용 여부, 중복 사용 방지 검증
  */
 export async function getAvailableCoupons(
   uid: string,
   orderAmount: number
 ): Promise<Coupon[]> {
   if (USE_FIREBASE) {
-    // TODO: Firestore 연동
-    throw new Error('Firebase not configured');
+    // Firestore 연동
+    const { collection, query, where, getDocs } = await import('firebase/firestore');
+    const { db } = await import('./firebase');
+
+    const couponsRef = collection(db, 'coupons');
+    const q = query(
+      couponsRef,
+      where('uid', '==', uid),
+      where('used', '==', false)
+    );
+
+    const snapshot = await getDocs(q);
+    const now = Date.now();
+
+    return snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() } as Coupon))
+      .filter(c => {
+        // 만료일 체크
+        if (now > c.expiresAt) return false;
+        // 최소 주문 금액 체크
+        if (orderAmount < c.minSpend) return false;
+        return true;
+      });
   }
 
   await new Promise(resolve => setTimeout(resolve, 300));
 
+  const now = Date.now();
   return mockCoupons.filter(c =>
     c.uid === uid &&
     !c.used &&
-    Date.now() <= c.expiresAt &&
+    now <= c.expiresAt &&
     orderAmount >= c.minSpend
   );
+}
+
+/**
+ * 쿠폰 유효성 검증
+ * 
+ * @param couponId 쿠폰 ID
+ * @param orderAmount 주문 금액
+ * @param uid 사용자 ID
+ * @returns 검증 결과
+ */
+export async function validateCoupon(
+  couponId: string,
+  orderAmount: number,
+  uid: string
+): Promise<{ valid: boolean; reason?: string; coupon?: Coupon }> {
+  try {
+    let coupon: Coupon | undefined;
+
+    if (USE_FIREBASE) {
+      const { doc, getDoc } = await import('firebase/firestore');
+      const { db } = await import('./firebase');
+
+      const couponDoc = await getDoc(doc(db, 'coupons', couponId));
+      if (!couponDoc.exists()) {
+        return { valid: false, reason: '쿠폰을 찾을 수 없습니다' };
+      }
+
+      coupon = { id: couponDoc.id, ...couponDoc.data() } as Coupon;
+    } else {
+      coupon = mockCoupons.find(c => c.id === couponId);
+    }
+
+    if (!coupon) {
+      return { valid: false, reason: '쿠폰을 찾을 수 없습니다' };
+    }
+
+    // 사용자 확인
+    if (coupon.uid !== uid) {
+      return { valid: false, reason: '본인의 쿠폰만 사용할 수 있습니다' };
+    }
+
+    // 사용 여부 확인
+    if (coupon.used) {
+      return { valid: false, reason: '이미 사용된 쿠폰입니다' };
+    }
+
+    // 만료일 확인
+    const now = Date.now();
+    if (now > coupon.expiresAt) {
+      return { valid: false, reason: '만료된 쿠폰입니다' };
+    }
+
+    // 최소 주문 금액 확인
+    if (orderAmount < coupon.minSpend) {
+      return {
+        valid: false,
+        reason: `최소 ${coupon.minSpend.toLocaleString()}원 이상 주문해야 합니다`,
+      };
+    }
+
+    return { valid: true, coupon };
+  } catch (error: any) {
+    console.error('Failed to validate coupon:', error);
+    return { valid: false, reason: error.message || '쿠폰 검증에 실패했습니다' };
+  }
+}
+
+/**
+ * 쿠폰을 장바구니에 적용 (검증 포함)
+ * 
+ * @param couponId 쿠폰 ID
+ * @param orderAmount 주문 금액 (쿠폰 적용 전)
+ * @param uid 사용자 ID
+ * @returns 적용된 할인 금액
+ */
+export async function applyCouponToCart(
+  couponId: string,
+  orderAmount: number,
+  uid: string
+): Promise<number> {
+  const validation = await validateCoupon(couponId, orderAmount, uid);
+
+  if (!validation.valid || !validation.coupon) {
+    throw new Error(validation.reason || '쿠폰을 사용할 수 없습니다');
+  }
+
+  // CartContext에서 호출해야 하므로, 여기서는 할인 금액만 반환
+  return validation.coupon.amount;
 }
 
 /**

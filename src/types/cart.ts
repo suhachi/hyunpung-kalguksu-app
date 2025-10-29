@@ -48,4 +48,5 @@ export interface CartContextType extends CartState {
   getSubtotal: () => number;
   getDeliveryFee: () => number;
   getTotalAmount: () => number;
+  canCheckout: () => boolean;
 }

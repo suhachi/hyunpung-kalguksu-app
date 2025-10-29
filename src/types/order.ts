@@ -64,6 +64,13 @@ export interface Order {
   subtotal: number;
   discount: number;
   couponId?: string;
+  couponSnapshot?: {
+    id: string;
+    title?: string;
+    amount: number;
+    minSpend: number;
+    appliedAt: number;
+  };
   deliveryFee: number;
   finalAmount: number;
   
