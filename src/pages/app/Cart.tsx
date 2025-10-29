@@ -68,7 +68,7 @@ export function Cart() {
           맛있는 메뉴를 담아보세요
         </p>
         <Button
-          onClick={() => navigate('/app/menu')}
+          onClick={() => navigate('/menu')}
           className="bg-[#D61C1C] hover:bg-[#D61C1C]/90"
         >
           메뉴 보러가기
@@ -224,7 +224,7 @@ export function Cart() {
           size="lg"
           className="w-full bg-[#D61C1C] hover:bg-[#D61C1C]/90"
           disabled={!canProceed}
-          onClick={() => navigate('/app/checkout')}
+          onClick={() => navigate('/checkout')}
         >
           {canProceed ? `${totalAmount.toLocaleString()}원 결제하기` : '최소 주문 금액 미달'}
         </Button>

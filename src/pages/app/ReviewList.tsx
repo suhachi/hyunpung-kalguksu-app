@@ -11,10 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
+import { USE_FIREBASE } from '../../config/env';
 import type { Review, ReviewSortOption, ReviewStats } from '../../types/review';
-
-// Firebase 사용 여부
-const USE_FIREBASE = false;
 
 // Mock 데이터
 const MOCK_REVIEWS: Review[] = [

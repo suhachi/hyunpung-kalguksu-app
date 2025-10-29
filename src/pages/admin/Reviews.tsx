@@ -25,7 +25,7 @@ import {
 import { getCurrentUser } from '../../lib/auth';
 import type { Review, ReviewStats } from '../../types/review';
 import type { ReviewReportReason } from '../../types/review';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 type FilterType = 'all' | 'photo' | 'reported';
 type SortType = 'latest' | 'rating_high' | 'rating_low';

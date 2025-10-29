@@ -16,7 +16,7 @@ export function Home() {
   return (
     <div className="space-y-6">
       {/* 히어로 섹션 */}
-      <section className="relative h-[300px] bg-gradient-to-b from-[#D61C1C] to-[#F37021]/20">
+      <section className="relative h-[300px] bg-gradient-to-b from-[#D61C1C] to-[#F37021]/20 mt-6">
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-8">
           <h1 className="text-3xl mb-4 text-center drop-shadow-lg">현풍닭칼국수</h1>
           <p className="text-lg text-center drop-shadow-md opacity-90">

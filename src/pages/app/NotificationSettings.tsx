@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/button';
 import { Switch } from '../../components/ui/switch';
 import { Label } from '../../components/ui/label';
 import { ArrowLeft, Bell, BellOff } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import {
   requestNotificationPermission,
   hasNotificationPermission,

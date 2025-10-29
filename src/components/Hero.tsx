@@ -1,11 +1,11 @@
-import heroImage from 'figma:asset/f881b2d8bf23006ccae73c3d977f87a2e2dccf47.png';
+const HERO_IMAGE_URL = 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrb3JlYW4lMjBub29kbGUlMjBzb3VwJTIwcmVzdGF1cmFudHxlbnwxfHx8fDE3NjE3MDQ1NDl8MA&ixlib=rb-4.1.0&q=80&w=1080';
 
 export function Hero() {
   return (
     <section className="relative h-[600px] overflow-hidden">
       <div 
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroImage})` }}
+        style={{ backgroundImage: `url(${HERO_IMAGE_URL})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30"></div>
       </div>

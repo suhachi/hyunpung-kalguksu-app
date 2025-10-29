@@ -1,5 +1,7 @@
 import { Facebook, Instagram, Youtube } from 'lucide-react';
-import logoImage from 'figma:asset/92c9b32635da68466319c6dfafbaf99b129ec904.png';
+import { ImageWithFallback } from './figma/ImageWithFallback';
+
+const LOGO_URL = 'https://images.unsplash.com/photo-1709170262709-855a36d38858?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrb3JlYW4lMjBmb29kJTIwYnJhbmRpbmd8ZW58MXx8fHwxNzYxNzA0NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080';
 
 export function Footer() {
   return (
@@ -7,7 +9,7 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
-            <img src={logoImage} alt="SHIN KAL 로고" className="h-16 mb-4" />
+            <ImageWithFallback src={LOGO_URL} alt="SHIN KAL 로고" className="h-16 mb-4" />
             <p className="text-gray-400 text-sm mb-4">
               신의를 지키는 칼국수<br/>
               Fine Korean Noodle

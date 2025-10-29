@@ -10,32 +10,14 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { useCart } from '../../contexts/CartContext';
 import { toast } from 'sonner';
 import menusData from '../../data/menus.json';
-import type { Menu, MenuOption } from '../../types/menu';
-
-// 실제 음식 이미지 매핑
-const menuImages: Record<string, string> = {
-  'menu-001': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-002': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-003': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-004': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-005': 'https://images.unsplash.com/photo-1608120073766-c80051eccbf6?w=800',
-  'menu-006': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-007': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-008': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-013': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-014': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=800',
-  'menu-021': 'https://images.unsplash.com/photo-1645530656505-1b8a4057889b?w=800',
-  'menu-022': 'https://images.unsplash.com/photo-1645530656505-1b8a4057889b?w=800',
-  'menu-023': 'https://images.unsplash.com/photo-1645530656505-1b8a4057889b?w=800',
-  'menu-024': 'https://images.unsplash.com/photo-1608120073766-c80051eccbf6?w=800',
-  'menu-025': 'https://images.unsplash.com/photo-1616627077891-a4780e730b7e?w=800',
-};
+import type { Menu } from '../../types/menu';
 
 const badgeStyles = {
   best: 'bg-[#D61C1C] text-white',
   signature: 'bg-[#C7A45A] text-white',
   spicy: 'bg-[#F37021] text-white',
   cold: 'bg-blue-500 text-white',
+  seasonal: 'bg-green-600 text-white',
 };
 
 const badgeLabels = {
@@ -43,6 +25,7 @@ const badgeLabels = {
   signature: '시그니처',
   spicy: '매운맛',
   cold: '냉메뉴',
+  seasonal: '계절메뉴',
 };
 
 export function MenuDetail() {
@@ -89,7 +72,7 @@ export function MenuDetail() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
         <p className="text-[#2E1C10]/60 mb-4">메뉴를 찾을 수 없습니다</p>
-        <Button onClick={() => navigate('/app/menu')}>
+        <Button onClick={() => navigate('/menu')}>
           메뉴 목록으로
         </Button>
       </div>
@@ -118,22 +101,21 @@ export function MenuDetail() {
       description: `${menu.name} ${quantity}개`,
       action: {
         label: '장바구니 보기',
-        onClick: () => navigate('/app/cart'),
+        onClick: () => navigate('/cart'),
       },
     });
   };
   
   const isTimeRestricted = menu.availableHours && !menu.isAvailable;
   const isSoldOut = !menu.isAvailable && !menu.availableHours;
-  const imageUrl = menuImages[menu.menuId];
   
   return (
     <div className="pb-24">
       {/* 메뉴 이미지 */}
       <div className="relative aspect-square bg-gradient-to-br from-[#F9F6F3] to-[#C7A45A]/20 overflow-hidden">
-        {imageUrl ? (
+        {menu.image ? (
           <ImageWithFallback
-            src={imageUrl}
+            src={menu.image}
             alt={menu.name}
             className="w-full h-full object-cover"
           />

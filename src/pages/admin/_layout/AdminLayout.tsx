@@ -15,11 +15,12 @@ import {
   Truck,
   MessageSquare,
   Gift,
+  TrendingUp,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Credits } from '../../../components/shared/Credits';
 import { requireAdmin, mockLogout, type AuthUser } from '../../../lib/auth';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -149,6 +150,7 @@ function SidebarNav({ onItemClick }: SidebarNavProps) {
     { to: '/admin/promotions', icon: Ticket, label: '쿠폰/프로모션' },
     { to: '/admin/points', icon: Gift, label: '포인트 관리' },
     { to: '/admin/analytics', icon: BarChart3, label: '관제 대시보드' },
+    { to: '/admin/integrated-analytics', icon: TrendingUp, label: '통합 리포트' },
     { to: '/admin/settings', icon: Settings, label: '설정' },
   ];
 

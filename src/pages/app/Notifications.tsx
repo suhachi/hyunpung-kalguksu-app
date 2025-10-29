@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Bell, BellOff, CheckCheck, ArrowLeft, Settings } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import {
   getNotifications,
   markAsRead,
@@ -82,22 +82,22 @@ export default function Notifications() {
       case 'order_completed':
       case 'order_cancelled':
         if (notification.data?.orderId) {
-          navigate(`/app/order-tracking?orderId=${notification.data.orderId}`);
+          navigate(`/order/${notification.data.orderId}`);
         }
         break;
       case 'coupon_issued':
-        navigate('/app/coupons');
+        navigate('/coupons');
         break;
       case 'points_earned':
-        navigate('/app/points');
+        navigate('/points');
         break;
       case 'review_reminder':
         if (notification.data?.orderId) {
-          navigate(`/app/review/write?orderId=${notification.data.orderId}`);
+          navigate(`/review/${notification.data.orderId}`);
         }
         break;
       case 'review_reply':
-        navigate('/app/reviews');
+        navigate('/reviews');
         break;
       default:
         // 기타 알림은 클릭 처리만

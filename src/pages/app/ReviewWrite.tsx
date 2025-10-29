@@ -4,7 +4,7 @@ import { Star, Upload, X, Image as ImageIcon, Loader2, Gift } from 'lucide-react
 import { Button } from '../../components/ui/button';
 import { Textarea } from '../../components/ui/textarea';
 import { Card } from '../../components/ui/card';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import {
   processImages,
   validateImageFiles,
@@ -13,12 +13,9 @@ import {
 } from '../../lib/imageUtils';
 import { earnPoints } from '../../lib/points.api';
 import { issueCoupon } from '../../lib/coupons.api';
-import { FEATURE_FLAGS } from '../../config/env';
+import { FEATURE_FLAGS, USE_FIREBASE } from '../../config/env';
 import type { Order } from '../../types/order';
 import type { ReviewFormData } from '../../types/review';
-
-// Firebase 사용 여부 (개발 시 false)
-const USE_FIREBASE = false;
 
 // 포인트 정책
 const POINTS_POLICY = {

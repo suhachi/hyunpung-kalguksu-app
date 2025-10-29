@@ -8,25 +8,6 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import menusData from '../../data/menus.json';
 import type { Menu, MenuCategory } from '../../types/menu';
 
-// 실제 음식 이미지 매핑
-const menuImages: Record<string, string> = {
-  'menu-001': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-002': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-003': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-004': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-005': 'https://images.unsplash.com/photo-1608120073766-c80051eccbf6?w=400',
-  'menu-006': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-007': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-008': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-013': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-014': 'https://images.unsplash.com/photo-1676686997059-fb817ebbb2b5?w=400',
-  'menu-021': 'https://images.unsplash.com/photo-1645530656505-1b8a4057889b?w=400',
-  'menu-022': 'https://images.unsplash.com/photo-1645530656505-1b8a4057889b?w=400',
-  'menu-023': 'https://images.unsplash.com/photo-1645530656505-1b8a4057889b?w=400',
-  'menu-024': 'https://images.unsplash.com/photo-1608120073766-c80051eccbf6?w=400',
-  'menu-025': 'https://images.unsplash.com/photo-1616627077891-a4780e730b7e?w=400',
-};
-
 const categories: { value: MenuCategory; label: string }[] = [
   { value: 'noodle', label: '메인' },
   { value: 'set', label: '세트' },
@@ -129,19 +110,17 @@ interface MenuCardProps {
 }
 
 function MenuCard({ menu }: MenuCardProps) {
-  const imageUrl = menuImages[menu.menuId];
-  
   return (
-    <Link to={`/app/menu/${menu.menuId}`}>
+    <Link to={`/menu/${menu.menuId}`}>
       <div className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
         !menu.isAvailable ? 'opacity-60' : ''
       }`}>
         <div className="flex gap-4 p-4">
           {/* 메뉴 이미지 */}
           <div className="relative flex-shrink-0 w-24 h-24 bg-gradient-to-br from-[#F9F6F3] to-[#C7A45A]/20 rounded-xl overflow-hidden">
-            {imageUrl ? (
+            {menu.image ? (
               <ImageWithFallback
-                src={imageUrl}
+                src={menu.image}
                 alt={menu.name}
                 className="w-full h-full object-cover"
               />

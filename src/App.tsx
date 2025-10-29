@@ -13,8 +13,10 @@ import ReviewWrite from "./pages/app/ReviewWrite";
 import ReviewList from "./pages/app/ReviewList";
 import Coupons from "./pages/app/Coupons";
 import Notifications from "./pages/app/Notifications";
+import NotificationSettings from "./pages/app/NotificationSettings";
 import Support from "./pages/app/Support";
 import Points from "./pages/app/Points";
+import My from "./pages/app/My";
 
 // Admin 페이지
 import { AdminLayout } from "./pages/admin/_layout/AdminLayout";
@@ -25,6 +27,7 @@ import AdminMenus from "./pages/admin/Menus";
 import AdminSettings from "./pages/admin/Settings";
 import AdminPromotions from "./pages/admin/Promotions";
 import AdminAnalytics from "./pages/admin/Analytics";
+import IntegratedAnalytics from "./pages/admin/IntegratedAnalytics";
 import AdminDelivery from "./pages/admin/Delivery";
 import AdminSupport from "./pages/admin/Support";
 import AdminPoints from "./pages/admin/Points";
@@ -51,7 +54,9 @@ export default function App() {
               <Route path="coupons" element={<Coupons />} />
               <Route path="points" element={<Points />} />
               <Route path="notifications" element={<Notifications />} />
+              <Route path="notification-settings" element={<NotificationSettings />} />
               <Route path="support" element={<Support />} />
+              <Route path="my" element={<My />} />
             </Route>
             
             {/* 브랜드 아이덴티티 가이드라인 */}
@@ -70,6 +75,7 @@ export default function App() {
               <Route path="promotions" element={<AdminPromotions />} />
               <Route path="points" element={<AdminPoints />} />
               <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="integrated-analytics" element={<IntegratedAnalytics />} />
             </Route>
             
             {/* 개발자 도구 (프로덕션에서 제거) */}

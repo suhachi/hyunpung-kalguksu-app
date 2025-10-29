@@ -12,11 +12,8 @@ import { Switch } from '../../components/ui/switch';
 import { useCart } from '../../contexts/CartContext';
 import { toast } from 'sonner';
 import { getPointsBalance, spendPoints, POINTS_POLICY } from '../../lib/points.api';
-import { FEATURE_FLAGS } from '../../config/env';
+import { FEATURE_FLAGS, USE_FIREBASE } from '../../config/env';
 import type { PaymentMethod } from '../../types/order';
-
-// Firebase는 나중에 연동 (현재는 로컬 개발 모드)
-const USE_FIREBASE = false;
 
 export function Checkout() {
   const navigate = useNavigate();
@@ -52,7 +49,7 @@ export function Checkout() {
   // 장바구니 비어있으면 리다이렉트
   useEffect(() => {
     if (items.length === 0) {
-      navigate('/app/cart');
+      navigate('/cart');
     }
   }, [items, navigate]);
 
@@ -193,10 +190,10 @@ export function Checkout() {
         // 성공 메시지
         if (paymentMethod === 'on_site') {
           toast.success('주문이 접수되었습니다');
-          navigate(`/app/order/${orderId}?result=on_site`);
+          navigate(`/order/${orderId}?result=on_site`);
         } else {
           toast.success('결제가 완료되었습니다');
-          navigate(`/app/order/${orderId}?result=success`);
+          navigate(`/order/${orderId}?result=success`);
         }
       }
     } catch (error) {
@@ -370,7 +367,7 @@ export function Checkout() {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               배달 주소를 입력해 주세요.{' '}
-              <button className="underline" onClick={() => navigate('/app/cart')}>
+              <button className="underline" onClick={() => navigate('/cart')}>
                 장바구니에서 설정
               </button>
             </AlertDescription>

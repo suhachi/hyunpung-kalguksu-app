@@ -30,7 +30,7 @@ import {
 } from 'recharts';
 import { TrendingUp, Users, Star, Download, RefreshCw } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export default function Analytics() {
   const [kpi, setKpi] = useState<KPIData | null>(null);

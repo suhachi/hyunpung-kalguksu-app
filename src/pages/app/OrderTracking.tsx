@@ -16,15 +16,12 @@ import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { generateReceipt, requestCashReceipt } from '../../lib/functions';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { delivery, isDeliveryEnabled } from '../../lib/delivery';
 import { earnPoints, calculateEarnPoints } from '../../lib/points.api';
-import { FEATURE_FLAGS } from '../../config/env';
+import { FEATURE_FLAGS, USE_FIREBASE } from '../../config/env';
 import type { OrderStatus } from '../../types/order';
 import type { DeliveryTask } from '../../types/delivery';
-
-// Firebase는 나중에 연동 (현재는 로컬 개발 모드)
-const USE_FIREBASE = false;
 
 // 로컬 개발용 Order 타입 (간소화)
 interface LocalOrder {

@@ -9,11 +9,9 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
-import { FEATURE_FLAGS } from '../../config/env';
+import { FEATURE_FLAGS, USE_FIREBASE } from '../../config/env';
 import type { ChatSession, ChatMessage, MessageSender } from '../../types/support';
-import { toast } from 'sonner@2.0.3';
-
-const USE_FIREBASE = false;
+import { toast } from 'sonner';
 
 // 운영 시간 체크
 function isBusinessHours(): boolean {

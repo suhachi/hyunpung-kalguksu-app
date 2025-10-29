@@ -1,5 +1,7 @@
 import { Heart, Utensils, Award, Users } from 'lucide-react';
-import brandIdentityImage from 'figma:asset/326493a3b65735707c0e5d3d387262bcd7cdcc21.png';
+import { ImageWithFallback } from './figma/ImageWithFallback';
+
+const BRAND_IDENTITY_URL = 'https://images.unsplash.com/photo-1701009203098-3bab61afe474?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cmFkaXRpb25hbCUyMGtvcmVhbiUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzYxNzA0NTQ5fDA&ixlib=rb-4.1.0&q=80&w=1080';
 
 export function BrandStory() {
   const values = [
@@ -44,8 +46,8 @@ export function BrandStory() {
 
         <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
           <div>
-            <img 
-              src={brandIdentityImage} 
+            <ImageWithFallback 
+              src={BRAND_IDENTITY_URL} 
               alt="현풍닭칼국수 브랜드 아이덴티티" 
               className="w-full max-w-md mx-auto"
             />

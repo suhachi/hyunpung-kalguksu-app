@@ -12,11 +12,9 @@ import { Badge } from '../../components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { Separator } from '../../components/ui/separator';
-import { FEATURE_FLAGS } from '../../config/env';
+import { FEATURE_FLAGS, USE_FIREBASE } from '../../config/env';
 import type { ChatSession, ChatMessage } from '../../types/support';
-import { toast } from 'sonner@2.0.3';
-
-const USE_FIREBASE = false;
+import { toast } from 'sonner';
 
 export default function Support() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);

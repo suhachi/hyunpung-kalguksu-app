@@ -1,5 +1,7 @@
 import { Phone } from 'lucide-react';
-import logoImage from 'figma:asset/326493a3b65735707c0e5d3d387262bcd7cdcc21.png';
+import { ImageWithFallback } from './figma/ImageWithFallback';
+
+const LOGO_URL = 'https://images.unsplash.com/photo-1758720793993-0d191e578741?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrb3JlYW4lMjByZXN0YXVyYW50JTIwbG9nbyUyMHRyYWRpdGlvbmFsfGVufDF8fHx8MTc2MTcwNDU0OHww&ixlib=rb-4.1.0&q=80&w=1080';
 
 export function Header() {
   const scrollToSection = (id: string) => {
@@ -14,7 +16,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <img src={logoImage} alt="현풍닭칼국수 로고" className="h-16" />
+            <ImageWithFallback src={LOGO_URL} alt="현풍닭칼국수 로고" className="h-16" />
             <nav className="hidden md:flex items-center gap-6">
               <button onClick={() => scrollToSection('about')} className="text-[#2E1C10] hover:text-[#D61C1C] transition-colors">
                 회사소개

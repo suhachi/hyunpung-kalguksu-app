@@ -33,7 +33,7 @@ import {
   type OrderSortDirection,
 } from '../../lib/admin/orders.api';
 import { Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
