@@ -1,12 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import { Home, UtensilsCrossed, Star, User } from 'lucide-react';
+import { APP } from '../../routes';
 
 export function BottomNav() {
   const navItems = [
-    { to: '/', icon: Home, label: '홈' },
-    { to: '/menu', icon: UtensilsCrossed, label: '메뉴' },
-    { to: '/reviews', icon: Star, label: '리뷰' },
-    { to: '/my', icon: User, label: '마이' },
+    { to: APP.home, icon: Home, label: '홈' },
+    { to: APP.menu, icon: UtensilsCrossed, label: '메뉴' },
+    { to: APP.reviews, icon: Star, label: '리뷰' },
+    { to: APP.my, icon: User, label: '마이' },
   ];
   
   return (
@@ -33,3 +34,5 @@ export function BottomNav() {
     </nav>
   );
 }
+
+// S1: 라우트 상수화 적용 완료

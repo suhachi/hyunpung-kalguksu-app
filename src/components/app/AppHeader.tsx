@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, ShoppingCart, MessageCircle } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { FEATURE_FLAGS } from '../../config/env';
+import { APP } from '../../routes';
 
 interface AppHeaderProps {
   showBack?: boolean;
@@ -27,7 +28,7 @@ export function AppHeader({ showBack = false, title }: AppHeaderProps) {
               <ArrowLeft className="w-6 h-6 text-[#2E1C10]" />
             </button>
           ) : (
-            <Link to="/" className="flex items-center gap-2">
+            <Link to={APP.home} className="flex items-center gap-2">
               <ChickenLogo />
               <span className="text-[#2E1C10]">
                 현풍닭칼국수
@@ -45,7 +46,7 @@ export function AppHeader({ showBack = false, title }: AppHeaderProps) {
         <div className="flex items-center gap-1">
           {FEATURE_FLAGS.support && (
             <Link
-              to="/support"
+              to={APP.support}
               className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-[#2E1C10]/5"
               aria-label="고객 지원"
             >
@@ -54,7 +55,7 @@ export function AppHeader({ showBack = false, title }: AppHeaderProps) {
           )}
           
           <Link
-            to="/notifications"
+            to={APP.notifications}
             className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-[#2E1C10]/5"
             aria-label="알림"
           >
@@ -62,7 +63,7 @@ export function AppHeader({ showBack = false, title }: AppHeaderProps) {
           </Link>
           
           <Link
-            to="/cart"
+            to={APP.cart}
             className="relative flex items-center justify-center w-10 h-10 rounded-lg hover:bg-[#2E1C10]/5"
             aria-label="장바구니"
           >

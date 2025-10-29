@@ -35,6 +35,9 @@ import AdminPoints from "./pages/admin/Points";
 // 개발자 도구
 import { DevTools } from "./pages/DevTools";
 
+// 라우트 상수
+import { APP, ADMIN, BRAND, DEV } from "./routes";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -42,7 +45,7 @@ export default function App() {
         <div className="min-h-screen bg-[#F9F6F3]">
           <Routes>
             {/* 고객용 PWA 앱 (메인) */}
-            <Route path="/" element={<AppLayout />}>
+            <Route path={APP.home} element={<AppLayout />}>
               <Route index element={<Home />} />
               <Route path="menu" element={<MenuList />} />
               <Route path="menu/:menuId" element={<MenuDetail />} />
@@ -60,10 +63,10 @@ export default function App() {
             </Route>
             
             {/* 브랜드 아이덴티티 가이드라인 */}
-            <Route path="/brand" element={<BrandIdentity />} />
+            <Route path={BRAND.identity} element={<BrandIdentity />} />
             
             {/* 관리자 대시보드 */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path={ADMIN.root} element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="orders" element={<AdminOrders />} />
@@ -79,10 +82,10 @@ export default function App() {
             </Route>
             
             {/* 개발자 도구 (프로덕션에서 제거) */}
-            <Route path="/dev" element={<DevTools />} />
+            <Route path={DEV.tools} element={<DevTools />} />
             
             {/* 404 처리 */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to={APP.home} replace />} />
           </Routes>
         </div>
         <Toaster />
