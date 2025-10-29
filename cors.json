@@ -3,7 +3,8 @@
     "origin": [
       "https://hp-kal.web.app",
       "https://hp-kal.firebaseapp.com",
-      "http://localhost:5173"
+      "http://localhost:5173",
+      "http://localhost:3000"
     ],
     "method": ["GET","HEAD","POST","PUT","DELETE","OPTIONS"],
     "responseHeader": ["Authorization","Content-Type","x-goog-meta-*","x-goog-resumable"],
