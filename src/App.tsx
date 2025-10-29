@@ -9,6 +9,7 @@ import { MenuDetail } from "./pages/app/MenuDetail";
 import { Cart } from "./pages/app/Cart";
 import { Checkout } from "./pages/app/Checkout";
 import { OrderTracking } from "./pages/app/OrderTracking";
+import Orders from "./pages/app/Orders";
 import ReviewWrite from "./pages/app/ReviewWrite";
 import ReviewList from "./pages/app/ReviewList";
 import Coupons from "./pages/app/Coupons";
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="menu/:menuId" element={<MenuDetail />} />
               <Route path="cart" element={<Cart />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="orders" element={<Orders />} />
               <Route path="order/:orderId" element={<OrderTracking />} />
               <Route path="review/:orderId" element={<ReviewWrite />} />
               <Route path="reviews" element={<ReviewList />} />

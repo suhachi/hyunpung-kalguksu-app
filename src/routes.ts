@@ -10,6 +10,7 @@ export const APP = {
   cart: "/cart",
   checkout: "/checkout",
   order: (id: string) => `/order/${id}`,
+  orders: "/orders",
   reviewWrite: (id: string) => `/review/${id}`,
   reviews: "/reviews",
   coupons: "/coupons",

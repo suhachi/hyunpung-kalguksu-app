@@ -45,7 +45,7 @@ export default function My() {
       {/* 빠른 메뉴 그리드 */}
       <div className="grid grid-cols-2 gap-3">
         {/* 주문내역 */}
-        <Link to="/reviews" className="block">
+        <Link to="/orders" className="block">
           <Card className="rounded-2xl hover:shadow-md transition-all hover:scale-[1.02] border-[#E5DDD5] h-full">
             <CardHeader className="pb-3">
               <div className="w-12 h-12 rounded-full bg-[#D61C1C]/10 flex items-center justify-center mb-2">
@@ -57,7 +57,7 @@ export default function My() {
               <p className="text-sm text-[#8B7355]">
                 최근 주문 확인
                 <br />
-                리뷰 작성하기
+                배달 추적하기
               </p>
             </CardContent>
           </Card>
