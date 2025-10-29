@@ -20,7 +20,6 @@ import {
 import { Button } from '../../../components/ui/button';
 import { Credits } from '../../../components/shared/Credits';
 import { useCurrentUser, logout } from '../../../lib/auth';
-import { toast } from 'sonner';
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -29,25 +28,9 @@ export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-  }, [currentUser]); // currentUser 변경 시 재확인
-
-  async function checkAuth() {
-    try {
-      // ✅ RequireAuth가 인증을 담당하므로 자동 로그인 코드 제거
-      // 관리자 권한 확인만 수행
-      if (!currentUser || currentUser.role !== 'admin') {
-        toast.error('관리자 권한이 필요합니다.');
-        navigate('/');
-        return;
-      }
-    } catch (error) {
-      toast.error('관리자 권한이 필요합니다.');
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
-  }
+    // RequireAdmin이 이미 권한을 보장하므로 여기선 로딩만 해제
+    setLoading(false);
+  }, [currentUser]);
 
   async function handleLogout() {
     await logout();
