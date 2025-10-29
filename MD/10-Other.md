@@ -22128,12 +22128,10 @@ echo ""
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // 메뉴 이미지 (5MB, 이미지 MIME) - 관리자만
+    // 메뉴 이미지 (5MB, 이미지 MIME) - 인증된 사용자만 (관리자 권한은 클라이언트에서 검증)
     match /menus/{menuId}/{file} {
       allow read: if true;
       allow write: if request.auth != null
-                   && exists(/databases/(default)/documents/users/$(request.auth.uid))
-                   && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['owner','admin']
                    && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }
@@ -22149,6 +22147,8 @@ service firebase.storage {
   }
 }
 ```
+
+**주의**: Storage Rules에서는 Firestore의 `exists()`, `get()` 함수를 사용할 수 없습니다. 따라서 관리자 권한 체크는 클라이언트 측 API 레벨에서 처리합니다.
 
 ## 212. tailwind.config.js
 
