@@ -16,6 +16,7 @@ import {
   deleteMenu,
 } from '../../lib/admin/menus.api';
 import { getCurrentUser } from '../../lib/auth';
+import { uploadMenuImage } from '../../lib/admin/menuImages.api';
 import { MenuTable } from '../../components/admin/MenuTable';
 import { MenuEditDialog } from '../../components/admin/MenuEditDialog';
 import { MenuCreateDialog } from '../../components/admin/MenuCreateDialog';
@@ -122,10 +123,12 @@ export default function Menus() {
   };
 
   const handleSaveEdit = async (
-    updates: { price?: number; description?: string },
+    updates: { price?: number; description?: string; image?: string },
     reason: string
-  ) => {
-    if (!user || !editingMenu) return;
+  ): Promise<void> => {
+    if (!user || !editingMenu) {
+      throw new Error('사용자 정보 또는 메뉴 정보가 없습니다');
+    }
 
     setActionLoading(true);
     try {
@@ -148,6 +151,8 @@ export default function Menus() {
     } catch (error: any) {
       console.error('Failed to update menu:', error);
       toast.error(error.message || '메뉴 수정에 실패했습니다');
+      // 에러를 다시 throw하여 상위 컴포넌트에서 처리할 수 있도록 함
+      throw error;
     } finally {
       setActionLoading(false);
     }
@@ -195,13 +200,34 @@ export default function Menus() {
   };
 
   // 메뉴 생성
-  const handleCreateMenu = async (menuData: Partial<Menu>) => {
+  const handleCreateMenu = async (menuData: Partial<Menu>, imageFile?: File) => {
     if (!user) return;
 
     const newMenu = await createMenu(menuData, user.uid, user.displayName || '관리자');
 
+    // 이미지 파일이 있으면 업로드 후 이미지 URL 갱신
+    if (imageFile) {
+      try {
+        const uploadedUrl = await uploadMenuImage(newMenu.menuId, imageFile);
+        const updated = await updateMenu(
+          newMenu.menuId,
+          { image: uploadedUrl },
+          user.uid,
+          user.name,
+          '신규 메뉴 이미지 업로드'
+        );
+        // UI 즉시 반영
+        setMenus(prev => [updated, ...prev.filter(m => m.menuId !== newMenu.menuId)]);
+      } catch (err) {
+        console.error('Failed to upload menu image:', err);
+        toast.error('이미지 업로드에 실패했습니다');
+      }
+    }
+
     // UI 즉시 반영 (최상단 추가)
-    setMenus(prev => [newMenu, ...prev]);
+    if (!imageFile) {
+      setMenus(prev => [newMenu, ...prev]);
+    }
     setLastCreatedMenuId(newMenu.menuId);
 
     // 통계 갱신

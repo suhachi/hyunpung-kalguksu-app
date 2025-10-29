@@ -3,7 +3,7 @@
  * Phase 2-9: KPI 및 차트 데이터
  */
 
-const USE_FIREBASE = false;
+import { USE_FIREBASE } from '../../config/env';
 
 // KPI 데이터
 export interface KPIData {

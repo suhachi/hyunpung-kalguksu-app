@@ -4,9 +4,7 @@
  */
 
 import type { Order, OrderStatus, OrderLog } from '../../types/order';
-
-// 환경 플래그
-const USE_FIREBASE = false;
+import { USE_FIREBASE } from '../../config/env';
 
 // Mock 데이터
 const mockOrders: Order[] = [

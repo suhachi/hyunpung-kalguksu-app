@@ -68,7 +68,7 @@ export function TimeSettingDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>시간제 판매 설정</DialogTitle>

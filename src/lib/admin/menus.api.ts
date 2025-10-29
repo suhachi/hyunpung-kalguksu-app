@@ -6,8 +6,7 @@
 
 import { Menu, MenuFilters, MenuLog, MenuStatus } from '../../types/menu';
 import menusData from '../../data/menus.json';
-
-const USE_FIREBASE = false;
+import { USE_FIREBASE } from '../../config/env';
 
 // Mock 데이터 (menus.json 기반)
 let mockMenus: Menu[] = Array.isArray(menusData) ? menusData : [];

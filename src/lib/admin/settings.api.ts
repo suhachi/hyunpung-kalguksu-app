@@ -9,8 +9,7 @@ import {
   DEFAULT_BUSINESS_HOURS, 
   DEFAULT_DELIVERY_FEES 
 } from '../../types/settings';
-
-const USE_FIREBASE = false;
+import { USE_FIREBASE } from '../../config/env';
 
 // Mock 데이터
 let mockSettings: StoreSettings = {

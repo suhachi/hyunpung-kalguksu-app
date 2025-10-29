@@ -16,12 +16,14 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { uploadMenuImage, deleteMenuImage } from '../../lib/admin/menuImages.api';
+import { toast } from 'sonner';
 
 interface MenuEditDialogProps {
   menu: Menu | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (updates: { price?: number; description?: string }, reason: string) => void;
+  onSave: (updates: { price?: number; description?: string; image?: string }, reason: string) => void;
   loading?: boolean;
 }
 
@@ -35,6 +37,10 @@ export function MenuEditDialog({
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [reason, setReason] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>(menu?.image ?? '');
+  const [imageReason, setImageReason] = useState('');
+  const [saving, setSaving] = useState(false);
 
   // 다이얼로그 열릴 때 초기값 설정
   const handleOpenChange = (newOpen: boolean) => {
@@ -42,45 +48,86 @@ export function MenuEditDialog({
       setPrice(menu.price.toString());
       setDescription(menu.description);
       setReason('');
+      setImageFile(null);
+      setImagePreview(menu.image);
+      setImageReason('');
     }
     onOpenChange(newOpen);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // 변경 사유 생성 헬퍼
+  const makeReason = (): string => {
+    const parts = [
+      reason.trim(),
+      imageFile && imageReason ? `이미지: ${imageReason}` : imageFile ? '이미지 변경' : null
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(' | ') : '이미지 변경';
+  };
 
-    if (!menu || !reason.trim()) {
+  const handleSave = async () => {
+    if (!menu) return;
+
+    // 가격/설명 변경 시 reason 필수 체크
+    const priceChanged = parseInt(price) !== menu.price && !isNaN(parseInt(price));
+    const descChanged = description.trim() !== menu.description;
+    if ((priceChanged || descChanged) && !reason.trim()) {
+      toast.error('변경 사유를 입력하세요');
       return;
     }
 
-    const updates: { price?: number; description?: string } = {};
+    setSaving(true);
+    
+    try {
+      const updates: { price?: number; description?: string; image?: string } = {};
 
-    const newPrice = parseInt(price);
-    if (!isNaN(newPrice) && newPrice !== menu.price) {
-      updates.price = newPrice;
+      if (priceChanged) {
+        updates.price = parseInt(price);
+      }
+
+      if (descChanged) {
+        updates.description = description.trim();
+      }
+
+      // 이미지 업로드 처리
+      if (imageFile) {
+        const url = await uploadMenuImage(menu.menuId, imageFile);
+        updates.image = url;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        toast.error('변경된 내용이 없습니다');
+        setSaving(false);
+        return;
+      }
+
+      await onSave(updates, makeReason());
+      
+      // onSave가 성공하면 다이얼로그 닫기
+      // (onSave 내부에서 이미 닫히지만, 혹시 모를 상황 대비)
+      onOpenChange(false);
+    } catch (e: any) {
+      console.error('Failed to save menu:', e);
+      // 에러 메시지는 onSave 내부에서 이미 표시됨
+      // 추가 에러 메시지는 필요시에만
+      if (!e?.handled) {
+        toast.error(e?.code || e?.message || '저장에 실패했습니다');
+      }
+    } finally {
+      setSaving(false); // ✅ 항상 복구
     }
-
-    if (description.trim() !== menu.description) {
-      updates.description = description.trim();
-    }
-
-    if (Object.keys(updates).length === 0) {
-      return;
-    }
-
-    onSave(updates, reason.trim());
   };
 
   if (!menu) return null;
 
   const hasChanges = 
     (parseInt(price) !== menu.price && !isNaN(parseInt(price))) ||
-    description.trim() !== menu.description;
+    description.trim() !== menu.description ||
+    !!imageFile;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit}>
+      <DialogContent className="sm:max-w-md bg-white">
+        <form onSubmit={(e) => { e.preventDefault(); }}>
           <DialogHeader>
             <DialogTitle>메뉴 수정</DialogTitle>
             <DialogDescription>
@@ -89,6 +136,30 @@ export function MenuEditDialog({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
+            {/* 이미지 변경 */}
+            <div className="space-y-2">
+              <Label>메뉴 이미지</Label>
+              {imagePreview && (
+                <img src={imagePreview} alt="미리보기" className="w-32 h-32 rounded object-cover" />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  setImageFile(f);
+                  setImagePreview(URL.createObjectURL(f));
+                }}
+              />
+              {imageFile && (
+                <Input
+                  placeholder="이미지 변경 사유"
+                  value={imageReason}
+                  onChange={(e) => setImageReason(e.target.value)}
+                />
+              )}
+            </div>
             {/* 가격 */}
             <div className="space-y-2">
               <Label htmlFor="price">가격 (원)</Label>
@@ -128,14 +199,21 @@ export function MenuEditDialog({
             {hasChanges && (
               <div className="space-y-2">
                 <Label htmlFor="reason">
-                  변경 사유 <span className="text-red-500">*</span>
+                  변경 사유 
+                  {((parseInt(price) !== menu.price && !isNaN(parseInt(price))) || description.trim() !== menu.description) && (
+                    <span className="text-red-500">*</span>
+                  )}
                 </Label>
                 <Input
                   id="reason"
                   value={reason}
                   onChange={e => setReason(e.target.value)}
-                  placeholder="예: 원가 상승으로 인한 가격 조정"
-                  required
+                  placeholder={
+                    imageFile && !(parseInt(price) !== menu.price || description.trim() !== menu.description)
+                      ? "이미지 변경 사유 (선택)"
+                      : "예: 원가 상승으로 인한 가격 조정"
+                  }
+                  required={!!((parseInt(price) !== menu.price && !isNaN(parseInt(price))) || description.trim() !== menu.description)}
                 />
               </div>
             )}
@@ -151,10 +229,18 @@ export function MenuEditDialog({
               취소
             </Button>
             <Button
-              type="submit"
-              disabled={!hasChanges || !reason.trim() || loading}
+              type="button"
+              onClick={handleSave}
+              disabled={
+                saving ||
+                loading ||
+                !hasChanges ||
+                // 가격/설명 변경 시에만 reason 필수
+                (((parseInt(price) !== menu.price && !isNaN(parseInt(price))) || description.trim() !== menu.description) && !reason.trim())
+              }
+              className="bg-[#D61C1C] hover:bg-[#D61C1C]/90"
             >
-              {loading ? '저장 중...' : '저장'}
+              {saving || loading ? '저장 중...' : '저장'}
             </Button>
           </DialogFooter>
         </form>

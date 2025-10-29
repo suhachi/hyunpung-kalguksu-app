@@ -3,7 +3,7 @@
  * USE_FIREBASE 플래그에 따라 실제 호출 또는 Mock 처리
  */
 
-const USE_FIREBASE = false; // TODO: config/env.ts로 통합
+import { USE_FIREBASE } from '../config/env';
 
 /**
  * 결제 승인

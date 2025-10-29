@@ -4,8 +4,7 @@
  */
 
 import { OptionGroup, OptionItem } from '../../types/menu';
-
-const USE_FIREBASE = false;
+import { USE_FIREBASE } from '../../config/env';
 
 // Mock 옵션 그룹 데이터
 let mockOptionGroups: OptionGroup[] = [

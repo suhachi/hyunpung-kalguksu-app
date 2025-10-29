@@ -5,9 +5,7 @@
  */
 
 import type { Review, ReviewReply, ReviewReport, ReviewReportReason, ReviewStats } from '../../types/review';
-
-// Firebase 사용 여부
-const USE_FIREBASE = false;
+import { USE_FIREBASE } from '../../config/env';
 
 // Mock 리뷰 데이터
 const MOCK_REVIEWS: Review[] = [

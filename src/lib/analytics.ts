@@ -3,7 +3,7 @@
  * 사용자 행동 추적 및 분석
  */
 
-const USE_FIREBASE = false; // TODO: config/env.ts로 통합
+import { USE_FIREBASE } from '../config/env';
 
 /**
  * 이벤트 로깅

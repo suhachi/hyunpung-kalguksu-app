@@ -31,15 +31,15 @@ const MOCK_ADMIN: User = {
  * TODO: Firebase Auth 연동
  */
 export function useCurrentUser(): User | null {
-  // 개발 모드 체크
-  const devMode = import.meta.env.DEV;
+  // localStorage에서 role 가져오기
+  const mockRole = localStorage.getItem('mockRole');
   
   // 쿼리 파라미터에서 role 가져오기 (?role=admin)
   const urlParams = new URLSearchParams(window.location.search);
   const role = urlParams.get('role') as 'customer' | 'admin' | null;
   
-  // Dev 모드 또는 role 파라미터가 있으면 해당 role 반환
-  if (devMode && role === 'admin') {
+  // localStorage 또는 URL 파라미터로 관리자 체크
+  if (mockRole === 'owner' || role === 'admin') {
     return MOCK_ADMIN;
   }
   
