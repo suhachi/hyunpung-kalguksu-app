@@ -3782,8 +3782,8 @@ self.addEventListener('notificationclick', (event) => {
 ```json
 {
   "hosting": {
-    "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "public": "build",
+    "ignore": ["**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "**",
@@ -3868,18 +3868,35 @@ const Checkout = lazy(() => import('./pages/app/Checkout'));
 ### 8.3 번들 최적화
 ```typescript
 // vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+
 export default defineConfig({
+  base: '/',
+  plugins: [react()],
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+    alias: {
+      'react-hook-form@7.55.0': 'react-hook-form',
+      'lucide-react@0.487.0': 'lucide-react',
+      'figma:asset/f881b2d8bf23006ccae73c3d977f87a2e2dccf47.png': path.resolve(__dirname, './src/assets/f881b2d8bf23006ccae73c3d977f87a2e2dccf47.png'),
+      'figma:asset/92c9b32635da68466319c6dfafbaf99b129ec904.png': path.resolve(__dirname, './src/assets/92c9b32635da68466319c6dfafbaf99b129ec904.png'),
+      'figma:asset/75b3c0027407bb9d32080f5b3eb51096c93f9933.png': path.resolve(__dirname, './src/assets/75b3c0027407bb9d32080f5b3eb51096c93f9933.png'),
+      'figma:asset/72ab99587b1fb72aa04a7051333c2c1411037d0e.png': path.resolve(__dirname, './src/assets/72ab99587b1fb72aa04a7051333c2c1411037d0e.png'),
+      'figma:asset/326493a3b65735707c0e5d3d387262bcd7cdcc21.png': path.resolve(__dirname, './src/assets/326493a3b65735707c0e5d3d387262bcd7cdcc21.png'),
+      'figma:asset/1710e1c0c8f0aa11de622128fdd40c7e0ada1ddd.png': path.resolve(__dirname, './src/assets/1710e1c0c8f0aa11de622128fdd40c7e0ada1ddd.png'),
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
-          'firebase-vendor': ['firebase/app', 'firebase/firestore', 'firebase/auth']
-        }
-      }
-    }
-  }
+    target: 'esnext',
+    outDir: 'build',
+  },
+  server: {
+    port: 3000,
+    open: true,
+  },
 });
 ```
 
@@ -15788,17 +15805,20 @@ placed → accepted → cooking → [배달] out_for_delivery → done
 **최종 검토**: 2024-10-28
 ```
 
-## 200. src/firebase.json
+## 200. firebase.json
 
 ```json
 {
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
-    "public": "dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "public": "build",
+    "ignore": ["**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "**",
@@ -15807,49 +15827,64 @@ placed → accepted → cooking → [배달] out_for_delivery → done
     ],
     "headers": [
       {
-        "source": "**/*.@(jpg|jpeg|gif|png|webp|avif)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
-          }
-        ]
-      },
-      {
         "source": "**/*.@(js|css)",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
-          }
+          { "key": "Cache-Control", "value": "public,max-age=31536000,immutable" }
         ]
       },
       {
-        "source": "sw.js",
+        "source": "/index.html",
         "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache"
-          }
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
         ]
       }
     ]
   },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "storage": {
-    "rules": "storage.rules"
-  },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs18"
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true
+    }
   }
 }
 ```
 
-## 201. src/firestore.indexes.json
+## 201. postcss.config.cjs
+
+```javascript
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+## 201. postcss.config.cjs
+
+```javascript
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+## 202. firestore.indexes.json
 
 ```json
 {
@@ -22115,7 +22150,102 @@ service firebase.storage {
 }
 ```
 
-## 212. src/styles/globals.css
+## 212. tailwind.config.js
+
+```javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ['class'],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // 현풍닭칼국수 브랜드 컬러
+        'hyunpung-red': 'var(--color-hyunpung-red)',
+        'shinkal-orange': 'var(--color-shinkal-orange)',
+        'dark-brown': 'var(--color-dark-brown)',
+        'cream-bg': 'var(--color-cream-bg)',
+        'brass-gold': 'var(--color-brass-gold)',
+        
+        // 시맨틱 브랜드 컬러
+        'brand-primary': 'var(--color-brand-primary)',
+        'brand-primary-hover': 'var(--color-brand-primary-hover)',
+        'brand-primary-light': 'var(--color-brand-primary-light)',
+        'brand-secondary': 'var(--color-brand-secondary)',
+        'brand-secondary-hover': 'var(--color-brand-secondary-hover)',
+        'brand-secondary-light': 'var(--color-brand-secondary-light)',
+        'brand-accent': 'var(--color-brand-accent)',
+        'brand-accent-hover': 'var(--color-brand-accent-hover)',
+        'brand-accent-light': 'var(--color-brand-accent-light)',
+        
+        // 시스템 컬러 (기존 유지)
+        background: 'var(--color-background)',
+        foreground: 'var(--color-foreground)',
+        card: 'var(--color-card)',
+        'card-foreground': 'var(--color-card-foreground)',
+        popover: 'var(--color-popover)',
+        'popover-foreground': 'var(--color-popover-foreground)',
+        muted: 'var(--color-muted)',
+        'muted-foreground': 'var(--color-muted-foreground)',
+        'accent-bg': 'var(--color-accent-bg)',
+        'accent-foreground': 'var(--color-accent-foreground)',
+        destructive: 'var(--color-destructive)',
+        'destructive-foreground': 'var(--color-destructive-foreground)',
+        border: 'var(--color-border)',
+        input: 'var(--color-input)',
+        ring: 'var(--color-ring)',
+      },
+      borderRadius: {
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+        'full': 'var(--radius-full)',
+      },
+      boxShadow: {
+        'soft-1': 'var(--shadow-soft-1)',
+        'soft-2': 'var(--shadow-soft-2)',
+        'soft-3': 'var(--shadow-soft-3)',
+        'medium': 'var(--shadow-medium)',
+        'large': 'var(--shadow-large)',
+      },
+      spacing: {
+        'xs': 'var(--spacing-xs)',
+        'sm': 'var(--spacing-sm)',
+        'md': 'var(--spacing-md)',
+        'lg': 'var(--spacing-lg)',
+        'xl': 'var(--spacing-xl)',
+        '2xl': 'var(--spacing-2xl)',
+        '3xl': 'var(--spacing-3xl)',
+      },
+    },
+  },
+  plugins: [require('tailwindcss-animate')],
+}
+```
+
+## 213. cors.json
+
+```json
+[
+  {
+    "origin": [
+      "https://hp-kal.web.app",
+      "https://hp-kal.firebaseapp.com",
+      "http://localhost:5173"
+    ],
+    "method": ["GET","HEAD","POST","PUT","DELETE","OPTIONS"],
+    "responseHeader": ["Authorization","Content-Type","x-goog-meta-*","x-goog-resumable"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+## 214. src/styles/globals.css
 
 ```css
 @custom-variant dark (&:is(.dark *));

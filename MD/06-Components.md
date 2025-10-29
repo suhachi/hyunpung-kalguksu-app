@@ -1418,12 +1418,13 @@ import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Plus, X, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { uploadMenuImage } from '../../lib/admin/menuImages.api';
+import { toast } from 'sonner';
 
 interface MenuCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (menuData: Partial<Menu>) => Promise<void>;
+  onSave: (menuData: Partial<Menu>, imageFile?: File) => Promise<void>;
 }
 
 export function MenuCreateDialog({
@@ -1444,6 +1445,9 @@ export function MenuCreateDialog({
   // 이미지
   const [imageUrl, setImageUrl] = useState('');
   const [imagePreview, setImagePreview] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const MAX_DESC = 200;
 
   // 옵션 그룹 관리
   const [availableOptionGroups, setAvailableOptionGroups] = useState<OptionGroup[]>([]);
@@ -1480,6 +1484,7 @@ export function MenuCreateDialog({
   const handleImageUrlChange = (url: string) => {
     setImageUrl(url);
     setImagePreview(url);
+    setImageFile(null);
   };
 
   // 옵션 그룹 선택/해제
@@ -1503,6 +1508,7 @@ export function MenuCreateDialog({
     setIsAvailable(true);
     setImageUrl('');
     setImagePreview('');
+    setImageFile(null);
     setSelectedOptionGroupIds([]);
   };
 
@@ -1519,8 +1525,8 @@ export function MenuCreateDialog({
       return;
     }
 
-    if (!imageUrl.trim()) {
-      toast.error('이미지 URL을 입력하세요');
+    if (!imageUrl.trim() && !imageFile) {
+      toast.error('이미지를 업로드하거나 URL을 입력하세요');
       return;
     }
 
@@ -1548,7 +1554,7 @@ export function MenuCreateDialog({
         isAvailable,
       };
 
-      await onSave(menuData);
+      await onSave(menuData, imageFile || undefined);
       resetForm();
       onOpenChange(false);
     } catch (error: any) {
@@ -1629,7 +1635,9 @@ export function MenuCreateDialog({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                maxLength={MAX_DESC}
               />
+              <p className="text-xs text-gray-500 text-right">{description.length}/{MAX_DESC}자</p>
             </div>
 
             {/* 배지 */}
@@ -1663,6 +1671,20 @@ export function MenuCreateDialog({
                 권장: 1600px, WebP 형식, 3MB 이하
               </p>
 
+              {/* 파일 선택 */}
+              <div className="mt-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setImageFile(f);
+                    setImagePreview(URL.createObjectURL(f));
+                  }}
+                />
+              </div>
+
               {/* 이미지 미리보기 */}
               {imagePreview && (
                 <div className="mt-3 relative">
@@ -1682,6 +1704,7 @@ export function MenuCreateDialog({
                     onClick={() => {
                       setImageUrl('');
                       setImagePreview('');
+                      setImageFile(null);
                     }}
                   >
                     <X className="w-4 h-4" />
