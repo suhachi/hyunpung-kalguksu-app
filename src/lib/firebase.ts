@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
+import { getMessaging, isSupported } from 'firebase/messaging';
 
 // Firebase 설정
 // 환경변수(.env.local)에서 설정값을 가져옵니다
@@ -27,6 +28,11 @@ export const db = getFirestore(app);
 // 모든 업로드는 이 storage 인스턴스만 사용해야 함
 export const storage = getStorage(app, "gs://hp-kal.firebasestorage.app");
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+// FCM (Firebase Cloud Messaging) - 브라우저에서만 초기화
+export const messaging = typeof window !== 'undefined' && isSupported()
+  ? getMessaging(app)
+  : null;
 
 export { app };
 export default app;

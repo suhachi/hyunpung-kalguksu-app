@@ -149,16 +149,21 @@ export const onOrderUpdated = functions.firestore
       const title = getStatusChangeTitle(after.status);
       const message = getStatusChangeMessage(after.status);
 
+      // 딥링크 URL 생성
+      const deepLink = `/orders/${orderId}`;
+      
       await sendPushToUser(after.userId, {
         notification: {
           title,
           body: message,
+          icon: '/icons/icon-192x192.png',
+          clickAction: deepLink,
         },
         data: {
           type: 'order_status_changed',
           orderId,
           status: String(after.status),
-          orderNumber: String(after.orderNumber || ''),
+          deepLink,
         },
       });
 
