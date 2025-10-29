@@ -9,6 +9,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { useCart } from '../../contexts/CartContext';
+import { AddressForm } from '../checkout/AddressForm';
 
 // 실제 음식 이미지 매핑
 const menuImages: Record<string, string> = {
@@ -37,11 +38,13 @@ export function Cart() {
   const {
     items,
     deliveryType,
+    deliveryAddress,
     requests,
     couponDiscount,
     removeItem,
     updateQuantity,
     setDeliveryType,
+    setDeliveryAddress,
     setRequests,
     getSubtotal,
     getDeliveryFee,
@@ -146,6 +149,17 @@ export function Cart() {
           </RadioGroup>
         </div>
 
+        {/* 배달 주소 입력 (배달 선택 시) */}
+        {deliveryType === 'delivery' && (
+          <div>
+            <h2 className="text-[#2E1C10] mb-3">배달 주소</h2>
+            <AddressForm
+              value={deliveryAddress}
+              onChange={setDeliveryAddress}
+            />
+          </div>
+        )}
+
         {/* 요청사항 */}
         <div>
           <h2 className="text-[#2E1C10] mb-3">
@@ -226,7 +240,13 @@ export function Cart() {
           disabled={!canProceed}
           onClick={() => navigate('/checkout')}
         >
-          {canProceed ? `${totalAmount.toLocaleString()}원 결제하기` : '최소 주문 금액 미달'}
+          {!canProceed 
+            ? hasDeliveryAddress 
+              ? `최소 주문 금액 미달 (${minOrderAmount.toLocaleString()}원 이상)`
+              : deliveryType === 'delivery'
+              ? '배달 주소를 입력해주세요'
+              : '최소 주문 금액 미달'
+            : `${totalAmount.toLocaleString()}원 결제하기`}
         </Button>
       </div>
     </div>

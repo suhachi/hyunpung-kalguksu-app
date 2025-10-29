@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { CartContextType, CartItem, DeliveryType, DeliveryAddress } from '../types/cart';
+import { calculateDeliveryFee } from '../lib/cart/deliveryFee';
+import deliveryZonesConfig from '../config/delivery-zones.json';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -192,10 +194,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
     
     // 최소 주문 금액 미달 시 배달 불가
     if (subtotal < MIN_ORDER_DELIVERY) return 0;
-    
-    // 실제로는 거리 기반 계산
-    // TODO: 주소에서 거리 계산 후 배달비 산정
-    return BASE_DELIVERY_FEE;
+
+    // 배달 주소가 없으면 기본 배달비 반환 (주소 입력 전)
+    if (!deliveryAddress || !deliveryAddress.lat || !deliveryAddress.lng) {
+      return BASE_DELIVERY_FEE; // 기본 배달비 (사용자 안내용)
+    }
+
+    // 거리 기반 배달비 계산
+    const storeLocation = deliveryZonesConfig.storeLocation;
+    const result = calculateDeliveryFee(
+      storeLocation.lat,
+      storeLocation.lng,
+      deliveryAddress.lat,
+      deliveryAddress.lng,
+      deliveryAddress.address,
+      {
+        useNightFee: true,
+        weight: 'normal',
+      }
+    );
+
+    // 배달 불가 지역이면 0 반환
+    if (!result.canDeliver) {
+      return 0;
+    }
+
+    return result.fee;
   };
 
   const getTotalAmount = () => {
