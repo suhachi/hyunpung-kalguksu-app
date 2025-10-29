@@ -1,5 +1,5 @@
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { app } from '../firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { storage } from '../firebase'; // ✅ firebase.ts에서 export한 storage 사용
 import { processImage, validateImageFile } from '../imageUtils';
 
 /**
@@ -33,11 +33,13 @@ export async function uploadMenuImage(
     processed = file;
   }
 
-  // Firebase Storage SDK 인스턴스 사용
-  const storage = getStorage(app);
+  // ✅ firebase.ts에서 export한 storage 사용 (올바른 버킷 보장)
   const objectRef = ref(storage, `menus/${menuId}/${fileName}`);
   
-  await uploadBytes(objectRef, processed, { contentType: 'image/webp' });
+  await uploadBytes(objectRef, processed, { 
+    contentType: 'image/webp',
+    cacheControl: 'public,max-age=60',
+  });
   return await getDownloadURL(objectRef);
 }
 
@@ -47,8 +49,7 @@ export async function uploadMenuImage(
  * @param fileName 삭제할 파일명 (기본값: image.webp, URL에서 추출 가능)
  */
 export async function deleteMenuImage(menuId: string, fileName?: string): Promise<void> {
-  const storage = getStorage(app);
-  
+  // ✅ firebase.ts에서 export한 storage 사용 (올바른 버킷 보장)
   // fileName이 없으면 기본값 사용
   const targetFileName = fileName || 'image.webp';
   const storageRef = ref(storage, `menus/${menuId}/${targetFileName}`);
