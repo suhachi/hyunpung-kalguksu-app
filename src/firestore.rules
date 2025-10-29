@@ -1,0 +1,179 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isStoreOwner(storeId) {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/stores/$(storeId)).data.ownerId == request.auth.uid;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.role in ['owner', 'admin'];
+    }
+    
+    // Users
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isAuthenticated();
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+    
+    // Stores
+    match /stores/{storeId} {
+      allow read: if true; // 모두 읽기 가능
+      allow write: if isStoreOwner(storeId);
+    }
+    
+    // Menus
+    match /menus/{menuId} {
+      allow read: if true; // 모두 읽기 가능
+      allow create, update, delete: if isAdmin(); // 관리자만 수정 가능
+    }
+    
+    // Menu Logs (감사 추적)
+    match /menu_logs/{logId} {
+      allow read: if isAdmin(); // 관리자만 읽기
+      allow create: if false; // Functions만 생성 가능
+      allow update, delete: if false; // 수정·삭제 불가
+    }
+    
+    // Orders
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && 
+                    (isOwner(resource.data.userId) || 
+                     isStoreOwner(resource.data.storeId) || 
+                     isAdmin());
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() &&
+                      // 불변 필드 보호
+                      request.resource.data.userId == resource.data.userId &&
+                      request.resource.data.storeId == resource.data.storeId &&
+                      request.resource.data.finalAmount == resource.data.finalAmount &&
+                      // status만 변경 가능 (상태 전이 검증은 Functions에서)
+                      request.resource.data.keys().hasAll(resource.data.keys());
+      allow delete: if false; // 삭제 절대 불가
+    }
+    
+    // Order Logs (감사 추적)
+    match /order_logs/{logId} {
+      allow read: if isAdmin(); // 관리자만 읽기
+      allow create: if false; // Functions만 생성 가능
+      allow update, delete: if false; // 수정·삭제 불가
+    }
+    
+    // Coupons
+    match /coupons/{couponId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if false; // Functions만 생성 가능
+      allow update: if isAuthenticated() && 
+                      isOwner(resource.data.userId) &&
+                      // userId 변경 불가
+                      request.resource.data.userId == resource.data.userId &&
+                      // status만 변경 가능 (unused -> used)
+                      resource.data.status == 'unused' &&
+                      request.resource.data.status == 'used';
+      allow delete: if false; // 삭제 불가
+    }
+    
+    // Reviews
+    match /reviews/{reviewId} {
+      allow read: if true; // 모두 읽기 가능 (hidden 필터링은 클라이언트에서)
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.rating >= 1 && 
+                      request.resource.data.rating <= 5 &&
+                      request.resource.data.content.size() <= 500;
+      allow update: if isAdmin() ||
+                      // 사용자는 본인 리뷰만 수정 가능, userId/orderId 불변
+                      (isOwner(resource.data.userId) &&
+                       request.resource.data.userId == resource.data.userId &&
+                       request.resource.data.orderId == resource.data.orderId);
+      allow delete: if isAdmin(); // 관리자만 삭제 가능
+    }
+    
+    // Review Reports
+    match /reviews_reports/{reportId} {
+      allow read: if isAdmin(); // 관리자만 읽기
+      allow create: if isAuthenticated() &&
+                      request.resource.data.reportedBy == request.auth.uid &&
+                      request.resource.data.reason in ['spam', 'abuse', 'advertisement', 'other'];
+      allow update, delete: if false; // 수정·삭제 불가
+    }
+    
+    // Notices
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if isStoreOwner(resource.data.storeId);
+    }
+    
+    // App Config (설정)
+    match /appConfig/{storeId} {
+      allow read: if true; // 모두 읽기 가능 (영업시간 확인용)
+      allow write: if isAdmin(); // 관리자만 수정 가능
+    }
+    
+    // ============================================
+    // Phase 3: 고급 기능 (GPS 추적, 채팅, 포인트)
+    // ============================================
+    
+    // Phase 3-1: Delivery Tracking
+    match /deliveries/{taskId} {
+      allow read: if isAuthenticated() && 
+                    (isAdmin() || 
+                     isOwner(get(/databases/$(database)/documents/orders/$(resource.data.orderId)).data.userId));
+      allow write: if false; // Functions only
+    }
+    
+    match /drivers/{driverId} {
+      allow read: if isAdmin();
+      allow write: if false; // Functions only
+    }
+    
+    // Phase 3-2: Support Chat
+    match /chat_sessions/{sessionId} {
+      allow read: if isAuthenticated() && 
+                    (isOwner(resource.data.userId) || isAdmin());
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                      (isOwner(resource.data.userId) || isAdmin());
+      allow delete: if false;
+      
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && 
+                      (isOwner(get(/databases/$(database)/documents/chat_sessions/$(sessionId)).data.userId) || 
+                       isAdmin());
+        allow create: if isAuthenticated() && 
+                        (isOwner(get(/databases/$(database)/documents/chat_sessions/$(sessionId)).data.userId) || 
+                         isAdmin());
+        allow update: if isAuthenticated() && 
+                        (isOwner(get(/databases/$(database)/documents/chat_sessions/$(sessionId)).data.userId) || 
+                         isAdmin());
+        allow delete: if false;
+      }
+    }
+    
+    // Phase 3-3: Points System
+    match /users/{userId}/points_balance {
+      allow read: if isOwner(userId);
+      allow write: if false; // Functions only
+    }
+    
+    match /users/{userId}/points_ledger/{ledgerId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Functions only
+    }
+  }
+}

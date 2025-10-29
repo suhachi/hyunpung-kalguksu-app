@@ -1,0 +1,22 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // 메뉴 이미지
+    match /menus/{menuId}/{fileName} {
+      allow read: if true; // 모두 읽기 가능
+      allow write: if request.auth != null 
+                   && request.resource.size < 5 * 1024 * 1024 // 5MB 제한
+                   && request.resource.contentType.matches('image/.*');
+    }
+    
+    // 리뷰 사진
+    match /reviews/{uid}/{rid}/{file} {
+      allow read: if true; // 모두 읽기 가능
+      allow write: if request.auth != null 
+                   && request.auth.uid == uid
+                   && request.resource.size < 3 * 1024 * 1024 // 3MB 제한
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

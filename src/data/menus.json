@@ -1,0 +1,310 @@
+[
+  {
+    "menuId": "menu-001",
+    "category": "noodle",
+    "name": "현풍닭칼국수",
+    "price": 9000,
+    "description": "정성스럽게 끓인 국물에 쫄깃한 수제 면발과 부드러운 닭고기가 어우러진 현풍의 시그니처 메뉴입니다.",
+    "image": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800",
+    "badges": ["best", "signature"],
+    "options": {
+      "noodle": [
+        { "label": "보통", "price": 0 },
+        { "label": "곱빼기", "price": 2000 }
+      ],
+      "spicy": [
+        { "label": "순한맛", "price": 0 },
+        { "label": "보통", "price": 0 },
+        { "label": "얼큰", "price": 0 }
+      ],
+      "toppings": [
+        { "label": "수육 추가", "price": 3000 },
+        { "label": "김치 추가", "price": 1500 },
+        { "label": "만두 추가", "price": 2000 }
+      ]
+    },
+    "allergens": ["밀", "콩", "닭고기"],
+    "origin": "닭고기(국내산), 밀가루(국내산)",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "menuId": "menu-002",
+    "category": "noodle",
+    "name": "얼큰닭칼국수",
+    "price": 10000,
+    "description": "얼큰한 국물이 일품인 매콤한 닭칼국수입니다. 추운 날 먹기 좋아요.",
+    "image": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800",
+    "badges": ["spicy"],
+    "options": {
+      "noodle": [
+        { "label": "보통", "price": 0 },
+        { "label": "곱빼기", "price": 2000 }
+      ],
+      "spicy": [
+        { "label": "보통", "price": 0 },
+        { "label": "매운맛", "price": 0 },
+        { "label": "아주매운맛", "price": 0 }
+      ],
+      "toppings": [
+        { "label": "수육 추가", "price": 3000 },
+        { "label": "김치 추가", "price": 1500 }
+      ]
+    },
+    "allergens": ["밀", "콩", "닭고기"],
+    "origin": "닭고기(국내산), 밀가루(국내산)",
+    "isAvailable": true,
+    "order": 2
+  },
+  {
+    "menuId": "menu-003",
+    "category": "noodle",
+    "name": "냉닭칼국수",
+    "price": 11000,
+    "description": "시원하고 깔끔한 냉국물에 쫄깃한 면발이 일품입니다. 여름 인기 메뉴!",
+    "image": "https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=800",
+    "badges": ["cold", "seasonal"],
+    "options": {
+      "noodle": [
+        { "label": "보통", "price": 0 },
+        { "label": "곱빼기", "price": 2000 }
+      ],
+      "toppings": [
+        { "label": "수육 추가", "price": 3000 },
+        { "label": "김치 추가", "price": 1500 }
+      ]
+    },
+    "allergens": ["밀", "콩", "닭고기"],
+    "origin": "닭고기(국내산), 밀가루(국내산)",
+    "isAvailable": true,
+    "order": 3
+  },
+  {
+    "menuId": "menu-004",
+    "category": "noodle",
+    "name": "닭수제비",
+    "price": 9000,
+    "description": "쫄깃한 수제비와 부드러운 닭고기가 어우러진 든든한 한 그릇입니다.",
+    "image": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=800",
+    "badges": [],
+    "options": {
+      "spicy": [
+        { "label": "순한맛", "price": 0 },
+        { "label": "보통", "price": 0 },
+        { "label": "얼큰", "price": 0 }
+      ],
+      "toppings": [
+        { "label": "수육 추가", "price": 3000 },
+        { "label": "김치 추가", "price": 1500 }
+      ]
+    },
+    "allergens": ["밀", "콩", "닭고기"],
+    "origin": "닭고기(국내산), 밀가루(국내산)",
+    "isAvailable": true,
+    "order": 4
+  },
+  {
+    "menuId": "menu-013",
+    "category": "set",
+    "name": "현풍닭칼국수 세트",
+    "price": 14000,
+    "description": "현풍닭칼국수 + 미니수육 150g이 포함된 세트입니다. 2,000원 절약!",
+    "image": "https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=800",
+    "badges": ["best"],
+    "options": {
+      "noodle": [
+        { "label": "보통", "price": 0 },
+        { "label": "곱빼기", "price": 2000 }
+      ],
+      "spicy": [
+        { "label": "순한맛", "price": 0 },
+        { "label": "보통", "price": 0 },
+        { "label": "얼큰", "price": 0 }
+      ]
+    },
+    "allergens": ["밀", "콩", "닭고기", "돼지고기"],
+    "origin": "닭고기(국내산), 돼지고기(국내산), 밀가루(국내산)",
+    "isAvailable": true,
+    "order": 13
+  },
+  {
+    "menuId": "menu-014",
+    "category": "set",
+    "name": "얼큰닭칼국수 세트",
+    "price": 15000,
+    "description": "얼큰닭칼국수 + 미니수육 150g이 포함된 세트입니다.",
+    "image": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800",
+    "badges": ["spicy"],
+    "options": {
+      "noodle": [
+        { "label": "보통", "price": 0 },
+        { "label": "곱빼기", "price": 2000 }
+      ],
+      "spicy": [
+        { "label": "보통", "price": 0 },
+        { "label": "매운맛", "price": 0 },
+        { "label": "아주매운맛", "price": 0 }
+      ]
+    },
+    "allergens": ["밀", "콩", "닭고기", "돼지고기"],
+    "origin": "닭고기(국내산), 돼지고기(국내산), 밀가루(국내산)",
+    "isAvailable": true,
+    "order": 14
+  },
+  {
+    "menuId": "menu-023",
+    "category": "side",
+    "name": "수육 (소)",
+    "price": 10000,
+    "description": "부드럽고 육즙이 풍부한 수육 소자입니다. 1인 추천. (150g)",
+    "image": "https://images.unsplash.com/photo-1625944525533-473f1a3d54e7?w=800",
+    "badges": [],
+    "allergens": ["돼지고기"],
+    "origin": "돼지고기(국내산)",
+    "isAvailable": true,
+    "order": 23
+  },
+  {
+    "menuId": "menu-024",
+    "category": "side",
+    "name": "수육 (중)",
+    "price": 15000,
+    "description": "부드럽고 육즙이 풍부한 수육 중자입니다. 2-3인 추천. (250g)",
+    "image": "https://images.unsplash.com/photo-1625944525533-473f1a3d54e7?w=800",
+    "badges": [],
+    "allergens": ["돼지고기"],
+    "origin": "돼지고기(국내산)",
+    "isAvailable": true,
+    "order": 24
+  },
+  {
+    "menuId": "menu-025",
+    "category": "side",
+    "name": "수육 (대)",
+    "price": 20000,
+    "description": "부드럽고 육즙이 풍부한 수육 대자입니다. 4-5인 추천. (400g)",
+    "image": "https://images.unsplash.com/photo-1625944525533-473f1a3d54e7?w=800",
+    "badges": ["best"],
+    "allergens": ["돼지고기"],
+    "origin": "돼지고기(국내산)",
+    "isAvailable": true,
+    "order": 25
+  },
+  {
+    "menuId": "menu-026",
+    "category": "side",
+    "name": "왕만두 (10개)",
+    "price": 8000,
+    "description": "손으로 직접 빚은 왕만두 10개입니다. 간식이나 술안주로 좋아요.",
+    "image": "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=800",
+    "badges": [],
+    "allergens": ["밀", "콩", "돼지고기"],
+    "origin": "돼지고기(국내산), 밀가루(국내산)",
+    "isAvailable": true,
+    "order": 26
+  },
+  {
+    "menuId": "menu-027",
+    "category": "side",
+    "name": "배추김치",
+    "price": 3000,
+    "description": "직접 담근 시원하고 아삭한 배추김치입니다.",
+    "image": "https://images.unsplash.com/photo-1580870069867-74c57ee1bb07?w=800",
+    "badges": [],
+    "allergens": ["새우젓"],
+    "origin": "배추(국내산)",
+    "isAvailable": true,
+    "order": 27
+  },
+  {
+    "menuId": "menu-028",
+    "category": "side",
+    "name": "공기밥",
+    "price": 1000,
+    "description": "국내산 쌀로 지은 공기밥입니다.",
+    "image": "https://images.unsplash.com/photo-1516684732162-798a0062be99?w=800",
+    "badges": [],
+    "allergens": [],
+    "origin": "쌀(국내산)",
+    "isAvailable": true,
+    "order": 28
+  },
+  {
+    "menuId": "menu-031",
+    "category": "drink",
+    "name": "콜라",
+    "price": 2000,
+    "description": "시원한 코카콜라 (355ml)",
+    "image": "https://images.unsplash.com/photo-1554866585-cd94860890b7?w=800",
+    "badges": [],
+    "allergens": [],
+    "origin": "-",
+    "isAvailable": true,
+    "order": 31
+  },
+  {
+    "menuId": "menu-032",
+    "category": "drink",
+    "name": "사이다",
+    "price": 2000,
+    "description": "시원한 칠성사이다 (355ml)",
+    "image": "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=800",
+    "badges": [],
+    "allergens": [],
+    "origin": "-",
+    "isAvailable": true,
+    "order": 32
+  },
+  {
+    "menuId": "menu-033",
+    "category": "drink",
+    "name": "생수",
+    "price": 1000,
+    "description": "삼다수 생수 (500ml)",
+    "image": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=800",
+    "badges": [],
+    "allergens": [],
+    "origin": "-",
+    "isAvailable": true,
+    "order": 33
+  },
+  {
+    "menuId": "menu-041",
+    "category": "alcohol",
+    "name": "참이슬",
+    "price": 4000,
+    "description": "참이슬 소주 (360ml)",
+    "image": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800",
+    "badges": [],
+    "allergens": [],
+    "origin": "-",
+    "isAvailable": true,
+    "order": 41
+  },
+  {
+    "menuId": "menu-042",
+    "category": "alcohol",
+    "name": "처음처럼",
+    "price": 4000,
+    "description": "처음처럼 소주 (360ml)",
+    "image": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800",
+    "badges": [],
+    "allergens": [],
+    "origin": "-",
+    "isAvailable": true,
+    "order": 42
+  },
+  {
+    "menuId": "menu-043",
+    "category": "alcohol",
+    "name": "카스",
+    "price": 4500,
+    "description": "카스 맥주 (500ml)",
+    "image": "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=800",
+    "badges": [],
+    "allergens": [],
+    "origin": "-",
+    "isAvailable": true,
+    "order": 43
+  }
+]
