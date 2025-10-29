@@ -64,9 +64,9 @@ Max retry time for operation exceeded, please try again.
 
 ## ✅ 해결 방법
 
-### 즉시 수정: cors.json 업데이트
+### 즉시 수정: cors.json 업데이트 ✅ 완료
 
-`http://localhost:3000`을 origin 목록에 추가:
+모든 로컬 개발 주소를 origin 목록에 추가:
 
 ```json
 [
@@ -74,8 +74,10 @@ Max retry time for operation exceeded, please try again.
     "origin": [
       "https://hp-kal.web.app",
       "https://hp-kal.firebaseapp.com",
-      "http://localhost:5173",
-      "http://localhost:3000"  // ✅ 추가 필요
+      "http://localhost:3000",      // ✅ 추가 완료
+      "http://127.0.0.1:3000",      // ✅ 추가 완료
+      "http://localhost:5173",      // ✅ 기존
+      "http://127.0.0.1:5173"       // ✅ 추가 완료
     ],
     "method": ["GET","HEAD","POST","PUT","DELETE","OPTIONS"],
     "responseHeader": ["Authorization","Content-Type","x-goog-meta-*","x-goog-resumable"],
@@ -84,7 +86,7 @@ Max retry time for operation exceeded, please try again.
 ]
 ```
 
-### 적용 명령어
+### 적용 명령어 ✅ 완료
 
 ```bash
 # cors.json 파일 수정 후
@@ -93,6 +95,10 @@ gcloud storage buckets update gs://hp-kal.firebasestorage.app --cors-file=cors.j
 # 확인
 gcloud storage buckets describe gs://hp-kal.firebasestorage.app --format="default(cors_config)"
 ```
+
+**✅ 적용 완료**: 2025-01-29
+- 모든 로컬 개발 주소 추가 완료
+- Firebase Storage에 재적용 완료
 
 ---
 
