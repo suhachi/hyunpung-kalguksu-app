@@ -1,0 +1,55 @@
+name: Auto Review Reports
+on:
+  push:
+    paths:
+      - 'MD2/**/*.md'
+      - 'docs/**/*.md'
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect changed report files
+        id: diff
+        run: |
+          echo "FILES<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(MD2|docs)/.*\.md$' || true >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Create issues per report
+        if: steps.diff.outputs.FILES != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const checklist = `
+- [ ] 로그인 플로우 테스트 (/login → /admin)
+- [ ] Firestore users/{uid}.role = owner|admin 확인
+- [ ] 이미지 업로드: OPTIONS 200 / PUT 200
+- [ ] Storage 경로 생성 (menus/{id}/{ts}.webp)
+- [ ] 기존 이미지 삭제 동작(오류 없음)
+- [ ] UI 토스트/로딩 정상
+`;
+            const files = `${{ steps.diff.outputs.FILES }}`.trim().split('\n').filter(Boolean);
+            for (const f of files) {
+              const title = `작업완료보고서 점검: ${f} @ ${context.sha.slice(0,7)}`;
+              const body = [
+                `보고서 파일: \`${f}\``,
+                `커밋: ${context.sha}`,
+                `작성자: @${context.actor}`,
+                '',
+                '### 자동 점검 체크리스트',
+                checklist,
+                '',
+                '> 체크 후 필요 시 버그 이슈를 별도로 생성하세요.'
+              ].join('\n');
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['report','qa-check']
+              });
+            }
+
