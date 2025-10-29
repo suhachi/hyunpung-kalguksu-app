@@ -1,108 +1,150 @@
 /**
- * 인증 및 권한 관리 유틸리티
- * USE_FIREBASE=false: mockAuth 사용
- * USE_FIREBASE=true: Firebase Auth 사용
+ * 인증 관련 유틸리티
+ * S3: RequireAuth, RequireAdmin HOC 구현
  */
 
-export type UserRole = 'customer' | 'owner' | 'admin';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { APP, ADMIN } from '../routes';
 
-export interface AuthUser {
+// Mock 사용자 정보 (추후 Firebase Auth로 교체)
+export interface User {
   uid: string;
   email: string;
-  displayName: string;
-  role: UserRole;
-  storeId?: string; // owner인 경우 관리하는 매장 ID
+  role: 'customer' | 'admin';
 }
 
-// Firebase 사용 여부 (개발 시 false)
-const USE_FIREBASE = false;
-
-/**
- * Mock 인증 사용자 (개발용)
- */
-const MOCK_ADMIN: AuthUser = {
-  uid: 'admin-001',
-  email: 'admin@hyunpungkalguksu.com',
-  displayName: '관리자',
-  role: 'owner',
-  storeId: 'store-hyunpung',
-};
-
-const MOCK_CUSTOMER: AuthUser = {
-  uid: 'user-001',
+const MOCK_USER: User = {
+  uid: 'mock-user-001',
   email: 'customer@example.com',
-  displayName: '김고객',
   role: 'customer',
 };
 
+const MOCK_ADMIN: User = {
+  uid: 'mock-admin-001',
+  email: 'admin@example.com',
+  role: 'admin',
+};
+
 /**
- * 현재 로그인한 사용자 정보 가져오기
+ * 현재 사용자 정보 반환 (Mock)
+ * TODO: Firebase Auth 연동
  */
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  if (USE_FIREBASE) {
-    // TODO: Firebase Auth에서 사용자 정보 가져오기
-    // const firebaseUser = auth.currentUser;
-    // if (!firebaseUser) return null;
-    // const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
-    // return userDoc.data() as AuthUser;
-    return null;
+export function useCurrentUser(): User | null {
+  // 개발 모드 체크
+  const devMode = import.meta.env.DEV;
+  
+  // 쿼리 파라미터에서 role 가져오기 (?role=admin)
+  const urlParams = new URLSearchParams(window.location.search);
+  const role = urlParams.get('role') as 'customer' | 'admin' | null;
+  
+  // Dev 모드 또는 role 파라미터가 있으면 해당 role 반환
+  if (devMode && role === 'admin') {
+    return MOCK_ADMIN;
   }
-
-  // Mock: localStorage에서 역할 가져오기 (테스트용)
-  const mockRole = localStorage.getItem('mockRole') || 'customer';
-  return mockRole === 'owner' || mockRole === 'admin' ? MOCK_ADMIN : MOCK_CUSTOMER;
+  
+  return MOCK_USER;
 }
 
 /**
- * 사용자가 특정 역할을 가지고 있는지 확인
+ * 현재 사용자 정보 반환 (Sync - 비 컴포넌트 사용)
+ * TODO: Firebase Auth 연동
  */
-export function hasRole(user: AuthUser | null, roles: UserRole[]): boolean {
-  if (!user) return false;
-  return roles.includes(user.role);
+export function getCurrentUser(): User | null {
+  return useCurrentUser();
 }
 
 /**
- * 관리자 권한 확인
+ * 인증 필요 검증
+ * @param user 현재 사용자
+ * @returns 인증 여부
  */
-export function isAdmin(user: AuthUser | null): boolean {
-  return hasRole(user, ['owner', 'admin']);
+export function requireAuth(user: User | null): boolean {
+  return user !== null;
 }
 
 /**
- * 고객 권한 확인
+ * 관리자 권한 검증
+ * @param user 현재 사용자
+ * @returns 관리자 여부
  */
-export function isCustomer(user: AuthUser | null): boolean {
-  return hasRole(user, ['customer']);
+export function requireAdmin(user: User | null): boolean {
+  return user !== null && user.role === 'admin';
+}
+
+/**
+ * Protected Route Component (기본 HOC)
+ */
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  check: (user: User | null) => boolean;
+  redirectTo: string;
+}
+
+function ProtectedRoute({ children, check, redirectTo }: ProtectedRouteProps) {
+  const navigate = useNavigate();
+  const user = useCurrentUser();
+  
+  useEffect(() => {
+    if (!check(user)) {
+      navigate(redirectTo, { replace: true });
+    }
+  }, [user, check, navigate, redirectTo]);
+  
+  if (!check(user)) {
+    return null; // 리다이렉트 중
+  }
+  
+  return children as React.ReactElement;
+}
+
+/**
+ * 인증 필요 HOC
+ * 사용자만 접근 가능
+ */
+export function RequireAuth({ children }: { children: React.ReactNode }) {
+  return React.createElement(
+    ProtectedRoute,
+    { check: requireAuth, redirectTo: APP.home },
+    children
+  );
+}
+
+/**
+ * 관리자 권한 필요 HOC
+ * 관리자만 접근 가능
+ */
+export function RequireAdmin({ children }: { children: React.ReactNode }) {
+  return React.createElement(
+    ProtectedRoute,
+    { check: requireAdmin, redirectTo: APP.home },
+    children
+  );
 }
 
 /**
  * Mock 로그인 (테스트용)
+ * TODO: Firebase Auth 로그인으로 교체
  */
-export function mockLogin(role: UserRole): void {
-  localStorage.setItem('mockRole', role);
-  window.location.reload();
+export function mockLogin(role: 'customer' | 'admin' = 'customer'): void {
+  console.log(`Mock login as ${role}`);
+  if (role === 'admin') {
+    window.location.href = `${ADMIN.root}?role=admin`;
+  } else {
+    window.location.href = `${APP.home}?role=customer`;
+  }
 }
 
 /**
  * Mock 로그아웃 (테스트용)
+ * TODO: Firebase Auth 로그아웃으로 교체
  */
 export function mockLogout(): void {
-  localStorage.removeItem('mockRole');
-  window.location.reload();
+  console.log('Mock logout');
+  window.location.href = APP.home;
 }
 
 /**
- * 관리자 페이지 접근 가드
- * 관리자가 아니면 홈으로 리다이렉트
+ * AuthUser 타입 별칭 (하위 호환성)
  */
-export async function requireAdmin(): Promise<AuthUser> {
-  const user = await getCurrentUser();
-  
-  if (!isAdmin(user)) {
-    // 관리자가 아니면 홈으로 이동
-    window.location.href = '/';
-    throw new Error('Unauthorized');
-  }
-  
-  return user!;
-}
+export type AuthUser = User;

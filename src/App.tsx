@@ -38,6 +38,9 @@ import { DevTools } from "./pages/DevTools";
 // 라우트 상수
 import { APP, ADMIN, BRAND, DEV } from "./routes";
 
+// 접근 가드
+import { RequireAdmin } from "./lib/auth";
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -66,7 +69,7 @@ export default function App() {
             <Route path={BRAND.identity} element={<BrandIdentity />} />
             
             {/* 관리자 대시보드 */}
-            <Route path={ADMIN.root} element={<AdminLayout />}>
+            <Route path={ADMIN.root} element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
               <Route index element={<Dashboard />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="orders" element={<AdminOrders />} />
