@@ -3244,113 +3244,244 @@ export function setUserProperties(properties: Record<string, any>): void {
 
 ```typescript
 /**
- * 인증 및 권한 관리 유틸리티
- * USE_FIREBASE=false: mockAuth 사용
- * USE_FIREBASE=true: Firebase Auth 사용
+ * 인증 관련 유틸리티
+ * S3: RequireAuth, RequireAdmin HOC 구현
  */
 
-export type UserRole = 'customer' | 'owner' | 'admin';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { APP, ADMIN } from '../routes';
+import { auth, db } from './firebase';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { USE_FIREBASE } from '../config/env';
 
-export interface AuthUser {
+// Mock 사용자 정보 (추후 Firebase Auth로 교체)
+export interface User {
   uid: string;
   email: string;
-  displayName: string;
-  role: UserRole;
-  storeId?: string; // owner인 경우 관리하는 매장 ID
+  role: 'customer' | 'admin';
 }
 
-// Firebase 사용 여부 (개발 시 false)
-const USE_FIREBASE = false;
-
-/**
- * Mock 인증 사용자 (개발용)
- */
-const MOCK_ADMIN: AuthUser = {
-  uid: 'admin-001',
-  email: 'admin@hyunpungkalguksu.com',
-  displayName: '관리자',
-  role: 'owner',
-  storeId: 'store-hyunpung',
-};
-
-const MOCK_CUSTOMER: AuthUser = {
-  uid: 'user-001',
+const MOCK_USER: User = {
+  uid: 'mock-user-001',
   email: 'customer@example.com',
-  displayName: '김고객',
   role: 'customer',
 };
 
+const MOCK_ADMIN: User = {
+  uid: 'mock-admin-001',
+  email: 'admin@example.com',
+  role: 'admin',
+};
+
 /**
- * 현재 로그인한 사용자 정보 가져오기
+ * Firebase Auth 로그인
  */
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  if (USE_FIREBASE) {
-    // TODO: Firebase Auth에서 사용자 정보 가져오기
-    // const firebaseUser = auth.currentUser;
-    // if (!firebaseUser) return null;
-    // const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
-    // return userDoc.data() as AuthUser;
-    return null;
+export async function firebaseLogin(email: string, password: string): Promise<FirebaseUser> {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential.user;
+}
+
+/**
+ * Firebase Auth 로그아웃
+ */
+export async function firebaseLogout(): Promise<void> {
+  await signOut(auth);
+}
+
+/**
+ * Firestore에서 사용자 role 가져오기
+ */
+async function getUserRoleFromFirestore(uid: string): Promise<'customer' | 'admin' | 'owner' | null> {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return (data.role as 'customer' | 'admin' | 'owner') || 'customer';
+    }
+  } catch (error) {
+    console.error('Failed to get user role:', error);
   }
-
-  // Mock: localStorage에서 역할 가져오기 (테스트용)
-  const mockRole = localStorage.getItem('mockRole') || 'customer';
-  return mockRole === 'owner' || mockRole === 'admin' ? MOCK_ADMIN : MOCK_CUSTOMER;
+  return null;
 }
 
 /**
- * 사용자가 특정 역할을 가지고 있는지 확인
+ * 현재 사용자 정보 반환 (Firebase Auth 또는 Mock)
  */
-export function hasRole(user: AuthUser | null, roles: UserRole[]): boolean {
-  if (!user) return false;
-  return roles.includes(user.role);
+export function useCurrentUser(): User | null {
+  const [user, setUser] = React.useState<User | null>(null);
+
+  useEffect(() => {
+    if (USE_FIREBASE) {
+      // Firebase Auth 사용
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          const role = await getUserRoleFromFirestore(firebaseUser.uid);
+          if (role) {
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              role: role === 'owner' || role === 'admin' ? 'admin' : 'customer',
+            });
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      });
+
+      return () => unsubscribe();
+    } else {
+      // Mock 인증 사용
+      const mockRole = localStorage.getItem('mockRole');
+      const urlParams = new URLSearchParams(window.location.search);
+      const role = urlParams.get('role') as 'customer' | 'admin' | null;
+
+      if (mockRole === 'owner' || role === 'admin') {
+        setUser(MOCK_ADMIN);
+      } else {
+        setUser(MOCK_USER);
+      }
+    }
+  }, []);
+
+  return user;
 }
 
 /**
- * 관리자 권한 확인
+ * 현재 사용자 정보 반환 (Sync - 비 컴포넌트 사용)
+ * TODO: Firebase Auth 연동
  */
-export function isAdmin(user: AuthUser | null): boolean {
-  return hasRole(user, ['owner', 'admin']);
+export function getCurrentUser(): User | null {
+  return useCurrentUser();
 }
 
 /**
- * 고객 권한 확인
+ * 인증 필요 검증
+ * @param user 현재 사용자
+ * @returns 인증 여부
  */
-export function isCustomer(user: AuthUser | null): boolean {
-  return hasRole(user, ['customer']);
+export function requireAuth(user: User | null): boolean {
+  return user !== null;
+}
+
+/**
+ * 관리자 권한 검증
+ * @param user 현재 사용자
+ * @returns 관리자 여부
+ */
+export function requireAdmin(user: User | null): boolean {
+  return user !== null && user.role === 'admin';
+}
+
+/**
+ * Protected Route Component (기본 HOC)
+ */
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  check: (user: User | null) => boolean;
+  redirectTo: string;
+}
+
+function ProtectedRoute({ children, check, redirectTo }: ProtectedRouteProps) {
+  const navigate = useNavigate();
+  const user = useCurrentUser();
+  
+  useEffect(() => {
+    if (!check(user)) {
+      navigate(redirectTo, { replace: true });
+    }
+  }, [user, check, navigate, redirectTo]);
+  
+  if (!check(user)) {
+    return null; // 리다이렉트 중
+  }
+  
+  return children as React.ReactElement;
+}
+
+/**
+ * 인증 필요 HOC
+ * 사용자만 접근 가능
+ */
+export function RequireAuth({ children }: { children: React.ReactNode }) {
+  return React.createElement(
+    ProtectedRoute,
+    { check: requireAuth, redirectTo: APP.home },
+    children
+  );
+}
+
+/**
+ * 관리자 권한 필요 HOC
+ * 관리자만 접근 가능
+ */
+export function RequireAdmin({ children }: { children: React.ReactNode }) {
+  return React.createElement(
+    ProtectedRoute,
+    { check: requireAdmin, redirectTo: APP.home },
+    children
+  );
+}
+
+/**
+ * 로그인 (Firebase Auth 또는 Mock)
+ */
+export async function login(email?: string, password?: string): Promise<void> {
+  if (USE_FIREBASE && email && password) {
+    // Firebase Auth 로그인
+    try {
+      await firebaseLogin(email, password);
+      console.log('Firebase Auth 로그인 성공');
+    } catch (error: any) {
+      console.error('Firebase Auth 로그인 실패:', error);
+      throw error;
+    }
+  } else {
+    // Mock 로그인 (개발용)
+    mockLogin('admin');
+  }
 }
 
 /**
  * Mock 로그인 (테스트용)
  */
-export function mockLogin(role: UserRole): void {
+export function mockLogin(role: 'customer' | 'admin' = 'customer'): void {
+  console.log(`Mock login as ${role}`);
   localStorage.setItem('mockRole', role);
-  window.location.reload();
+  if (role === 'admin') {
+    window.location.href = `${ADMIN.root}?role=admin`;
+  } else {
+    window.location.href = `${APP.home}?role=customer`;
+  }
+}
+
+/**
+ * 로그아웃 (Firebase Auth 또는 Mock)
+ */
+export async function logout(): Promise<void> {
+  if (USE_FIREBASE) {
+    await firebaseLogout();
+  } else {
+    mockLogout();
+  }
 }
 
 /**
  * Mock 로그아웃 (테스트용)
  */
 export function mockLogout(): void {
+  console.log('Mock logout');
   localStorage.removeItem('mockRole');
-  window.location.reload();
+  window.location.href = APP.home;
 }
 
 /**
- * 관리자 페이지 접근 가드
- * 관리자가 아니면 홈으로 리다이렉트
+ * AuthUser 타입 별칭 (하위 호환성)
  */
-export async function requireAdmin(): Promise<AuthUser> {
-  const user = await getCurrentUser();
-  
-  if (!isAdmin(user)) {
-    // 관리자가 아니면 홈으로 이동
-    window.location.href = '/';
-    throw new Error('Unauthorized');
-  }
-  
-  return user!;
-}
+export type AuthUser = User;
 ```
 
 ## 15. src/lib/coupons.api.ts
@@ -4331,12 +4462,13 @@ import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
 // Firebase 설정
-// 실제 프로젝트에서는 환경변수(.env)에서 불러옵니다
+// 환경변수(.env.local)에서 설정값을 가져옵니다
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "your-project.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "your-project",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "your-project.appspot.com",
+  // ✅ 명시적으로 올바른 버킷 지정 (환경 변수 값 또는 기본값)
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "hp-kal.firebasestorage.app",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef",
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
@@ -4348,7 +4480,9 @@ const app = initializeApp(firebaseConfig);
 // Firebase 서비스
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app);
+// ✅ 명시적으로 버킷 URL 지정하여 올바른 버킷 사용 보장
+// 모든 업로드는 이 storage 인스턴스만 사용해야 함
+export const storage = getStorage(app, "gs://hp-kal.firebasestorage.app");
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 export { app };
@@ -5645,8 +5779,8 @@ export function calculateReviewPoints(hasPhoto: boolean): number {
 ## 27. src/lib/admin/menuImages.api.ts
 
 ```typescript
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { app } from '../firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { storage } from '../firebase'; // ✅ firebase.ts에서 export한 storage 사용
 import { processImage, validateImageFile } from '../imageUtils';
 
 /**
@@ -5680,11 +5814,13 @@ export async function uploadMenuImage(
     processed = file;
   }
 
-  // Firebase Storage SDK 인스턴스 사용
-  const storage = getStorage(app);
+  // ✅ firebase.ts에서 export한 storage 사용 (올바른 버킷 보장)
   const objectRef = ref(storage, `menus/${menuId}/${fileName}`);
   
-  await uploadBytes(objectRef, processed, { contentType: 'image/webp' });
+  await uploadBytes(objectRef, processed, { 
+    contentType: 'image/webp',
+    cacheControl: 'public,max-age=60',
+  });
   return await getDownloadURL(objectRef);
 }
 
@@ -5694,7 +5830,7 @@ export async function uploadMenuImage(
  * @param fileName 삭제할 파일명 (기본값: image.webp, URL에서 추출 가능)
  */
 export async function deleteMenuImage(menuId: string, fileName?: string): Promise<void> {
-  const storage = getStorage(app);
+  // ✅ firebase.ts에서 export한 storage 사용 (올바른 버킷 보장)
   
   // fileName이 없으면 기본값 사용
   const targetFileName = fileName || 'image.webp';

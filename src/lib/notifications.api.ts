@@ -185,12 +185,23 @@ export async function getNotifications(
     );
     
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt.toDate(),
-      expiresAt: doc.data().expiresAt?.toDate(),
-    })) as Notification[];
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        userId: data.userId,
+        type: data.type as NotificationType,
+        title: data.title,
+        body: data.body,
+        data: data.data || {},
+        deepLink: data.deepLink || undefined,
+        priority: data.priority || 'normal',
+        read: data.read || false,
+        clicked: data.clicked || false,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        expiresAt: data.expiresAt?.toDate(),
+      };
+    });
   } catch (error) {
     console.error('Failed to get notifications:', error);
     throw error;
@@ -200,7 +211,7 @@ export async function getNotifications(
 /**
  * 알림을 읽음으로 표시
  */
-export async function markAsRead(notificationId: string): Promise<void> {
+export async function markAsRead(userId: string, notificationId: string): Promise<void> {
   if (!USE_FIREBASE) {
     console.log('[Mock] Marking notification as read:', notificationId);
     return;
@@ -252,6 +263,29 @@ export async function markAllAsRead(userId: string): Promise<void> {
     await batch.commit();
   } catch (error) {
     console.error('Failed to mark all notifications as read:', error);
+    throw error;
+  }
+}
+
+/**
+ * 알림 삭제
+ */
+export async function deleteNotification(
+  userId: string,
+  notificationId: string
+): Promise<void> {
+  if (!USE_FIREBASE) {
+    console.log('[Mock] Deleting notification:', notificationId);
+    return;
+  }
+
+  try {
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    const { db } = await import('./firebase');
+    
+    await deleteDoc(doc(db, 'notifications', notificationId));
+  } catch (error) {
+    console.error('Failed to delete notification:', error);
     throw error;
   }
 }

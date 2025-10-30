@@ -11,6 +11,9 @@ import { getStatusChangeMessage, getStatusChangeTitle } from './lib/report';
 import { authorizePayment, cancelPayment, issueCashReceipt } from './lib/nicepay';
 import { generateReceiptPDF, ReceiptData } from './lib/pdf';
 
+// 결제 Functions (NICEPAY)
+// NICEPAY functions are temporarily disabled until configuration is finalized.
+
 // Firebase Admin 초기화
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -141,16 +144,21 @@ export const onOrderUpdated = functions.firestore
       const title = getStatusChangeTitle(after.status);
       const message = getStatusChangeMessage(after.status);
 
+      // 딥링크 URL 생성
+      const deepLink = `/orders/${orderId}`;
+      
       await sendPushToUser(after.userId, {
         notification: {
           title,
           body: message,
+          icon: '/icons/icon-192x192.png',
+          clickAction: deepLink,
         },
         data: {
           type: 'order_status_changed',
           orderId,
           status: String(after.status),
-          orderNumber: String(after.orderNumber || ''),
+          deepLink,
         },
       });
 
@@ -444,3 +452,24 @@ export const requestCashReceipt = functions.https.onCall(
     }
   }
 );
+
+// ============================================================================
+// 새로운 결제 Functions (Idempotency 및 서명 검증 포함)
+// ============================================================================
+// export of NICEPAY functions removed while keys are unconfigured
+
+// ============================================================================
+// 배달 Webhook 엔드포인트
+// ============================================================================
+export { deliveryWebhook } from './delivery/webhook';
+
+// ============================================================================
+// 이미지 변환 파이프라인
+// ============================================================================
+export { onMenuImageFinalize } from './images/transform';
+
+// ============================================================================
+// 관리자 헬스체크
+// ============================================================================
+export { adminHealthCheck } from './admin/health';
+export { adminSetup } from './admin/setup';

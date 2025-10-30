@@ -19,9 +19,19 @@ const providers: Record<string, DeliveryProvider> = {
 };
 
 /**
- * 현재 활성화된 배달 Provider
+ * Provider 선택자
+ * 환경 변수에 따라 적절한 Provider 반환
  */
-export const delivery = providers[FEATURE_FLAGS.deliveryProvider] || mockDelivery;
+export function getDeliveryProvider(): DeliveryProvider {
+  const key = (import.meta.env.VITE_DELIVERY_PROVIDER || 'mock') as keyof typeof providers;
+  return providers[key] ?? mockDelivery;
+}
+
+/**
+ * 현재 활성화된 배달 Provider
+ * @deprecated getDeliveryProvider() 사용 권장
+ */
+export const delivery = getDeliveryProvider();
 
 /**
  * 배달 추적 기능이 활성화되어 있는지 확인

@@ -173,12 +173,33 @@ export const providerA: DeliveryProvider = {
  */
 function mapProviderAStatus(status: string): DeliveryTask['status'] {
   const statusMap: Record<string, DeliveryTask['status']> = {
+    'created': 'created',
     'assigned': 'assigned',
     'picked_up': 'picked_up',
     'in_transit': 'delivering',
+    'on_the_way': 'delivering',
+    'delivering': 'delivering',
     'delivered': 'completed',
+    'completed': 'completed',
     'cancelled': 'canceled',
+    'canceled': 'canceled',
   };
 
-  return statusMap[status] || 'assigned';
+  return statusMap[status] || 'created';
+}
+
+/**
+ * HTTP 에러를 표준화된 에러로 변환
+ */
+function normalizeError(error: any): { code: string; message: string } {
+  if (error.response) {
+    const status = error.response.status;
+    if (status >= 400 && status < 500) {
+      return { code: 'CLIENT_ERROR', message: `API error: ${status}` };
+    } else if (status >= 500) {
+      return { code: 'SERVER_ERROR', message: `Server error: ${status}` };
+    }
+  }
+  
+  return { code: 'UNKNOWN_ERROR', message: error.message || 'Unknown error' };
 }

@@ -10,6 +10,7 @@ export interface Coordinates {
 }
 
 export type DeliveryStatus = 
+  | 'created'       // 생성됨
   | 'assigned'      // 배정됨
   | 'picked_up'     // 픽업 완료
   | 'delivering'    // 배달 중

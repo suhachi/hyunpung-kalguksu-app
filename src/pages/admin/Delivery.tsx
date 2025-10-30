@@ -6,17 +6,20 @@
  */
 
 import { useEffect, useState } from 'react';
-import { MapPin, Navigation, Clock, AlertTriangle, RefreshCw, Package } from 'lucide-react';
+import { MapPin, Navigation, Clock, AlertTriangle, RefreshCw, Package, Settings } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { getAllMockTasks, subscribeMockTasks } from '../../lib/delivery';
-import { isDeliveryEnabled } from '../../lib/delivery';
+import { useNavigate } from 'react-router-dom';
+import { getAllMockTasks, subscribeMockTasks, getDeliveryProvider, isDeliveryEnabled, currentProvider } from '../../lib/delivery';
+import { useDeliveryTasks } from '../../lib/delivery/hooks';
+import { USE_FIREBASE } from '../../config/env';
 import type { DeliveryTask, DeliveryStatus } from '../../types/delivery';
 
 const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string }> = {
+  created: { label: '생성됨', color: 'bg-gray-500' },
   assigned: { label: '배정됨', color: 'bg-blue-500' },
   picked_up: { label: '픽업 완료', color: 'bg-purple-500' },
   delivering: { label: '배달 중', color: 'bg-orange-500' },
@@ -27,33 +30,64 @@ const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string }> = 
 const SLA_THRESHOLD_MINUTES = 45; // SLA 기준: 45분
 
 export default function Delivery() {
-  const [tasks, setTasks] = useState<DeliveryTask[]>([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'delayed'>('all');
+  const [cancelingTaskId, setCancelingTaskId] = useState<string | null>(null);
+
+  // Firestore 실시간 구독 (USE_FIREBASE=true일 때)
+  const { tasks: firestoreTasks, loading: firestoreLoading, error: firestoreError } = useDeliveryTasks();
+  
+  // Mock 모드 (USE_FIREBASE=false일 때)
+  const [mockTasks, setMockTasks] = useState<DeliveryTask[]>([]);
+  const [mockLoading, setMockLoading] = useState(true);
 
   useEffect(() => {
     if (!isDeliveryEnabled) return;
 
-    // 초기 로드
-    loadTasks();
+    if (USE_FIREBASE) {
+      // Firestore 모드: useDeliveryTasks 훅이 자동으로 처리
+      return;
+    }
 
-    // 실시간 구독
+    // Mock 모드: 기존 방식
+    loadMockTasks();
     const unsubscribe = subscribeMockTasks(() => {
-      loadTasks();
+      loadMockTasks();
     });
-
     return unsubscribe;
   }, []);
 
-  function loadTasks() {
+  function loadMockTasks() {
     try {
-      setLoading(true);
+      setMockLoading(true);
       const allTasks = getAllMockTasks();
-      setTasks(allTasks);
+      setMockTasks(allTasks);
     } catch (error) {
       console.error('Failed to load delivery tasks:', error);
     } finally {
-      setLoading(false);
+      setMockLoading(false);
+    }
+  }
+
+  // Firebase 모드면 Firestore 데이터, 아니면 Mock 데이터
+  const tasks = USE_FIREBASE ? firestoreTasks : mockTasks;
+  const loading = USE_FIREBASE ? firestoreLoading : mockLoading;
+
+  async function handleCancelTask(taskId: string) {
+    if (!confirm('이 배달을 취소하시겠습니까?')) {
+      return;
+    }
+
+    setCancelingTaskId(taskId);
+    try {
+      const provider = getDeliveryProvider();
+      await provider.cancelTask(taskId);
+      // 실시간 업데이트는 자동으로 반영됨
+    } catch (error) {
+      console.error('Failed to cancel task:', error);
+      alert('배달 취소에 실패했습니다.');
+    } finally {
+      setCancelingTaskId(null);
     }
   }
 
@@ -94,17 +128,44 @@ export default function Delivery() {
           <h1 className="text-2xl text-[#2E1C10]">배달 관제</h1>
           <p className="text-sm text-[#2E1C10]/60">
             실시간 배달 현황 모니터링
+            {currentProvider && (
+              <Badge variant="secondary" className="ml-2">
+                {currentProvider === 'mock' && 'Mock (테스트)'}
+                {currentProvider === 'providerA' && 'Provider A'}
+              </Badge>
+            )}
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={loadTasks}
-          disabled={loading}
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          새로고침
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin/settings?tab=delivery')}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            설정
+          </Button>
+          {!USE_FIREBASE && (
+            <Button
+              variant="outline"
+              onClick={loadMockTasks}
+              disabled={mockLoading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${mockLoading ? 'animate-spin' : ''}`} />
+              새로고침
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Firebase 에러 표시 */}
+      {USE_FIREBASE && firestoreError && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            배달 태스크를 불러오는 중 오류가 발생했습니다: {firestoreError.message}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -204,7 +265,12 @@ export default function Delivery() {
               ) : (
                 <div className="space-y-3">
                   {filteredTasks.map((task) => (
-                    <DeliveryTaskCard key={task.taskId} task={task} />
+                    <DeliveryTaskCard
+                      key={task.taskId}
+                      task={task}
+                      onCancel={handleCancelTask}
+                      canceling={cancelingTaskId === task.taskId}
+                    />
                   ))}
                 </div>
               )}
@@ -243,7 +309,15 @@ export default function Delivery() {
 /**
  * 개별 배달 태스크 카드
  */
-function DeliveryTaskCard({ task }: { task: DeliveryTask }) {
+function DeliveryTaskCard({
+  task,
+  onCancel,
+  canceling,
+}: {
+  task: DeliveryTask;
+  onCancel?: (taskId: string) => void;
+  canceling?: boolean;
+}) {
   const elapsed = (Date.now() - task.createdAt) / 1000 / 60; // 분
   const isDelayed = elapsed > SLA_THRESHOLD_MINUTES && 
                     task.status !== 'completed' && 
@@ -314,6 +388,21 @@ function DeliveryTaskCard({ task }: { task: DeliveryTask }) {
           <span className="ml-2 text-[#2E1C10]/40">
             ({new Date(task.lastCoord.at).toLocaleTimeString('ko-KR')})
           </span>
+        </div>
+      )}
+
+      {/* 액션 버튼 */}
+      {onCancel && task.status !== 'completed' && task.status !== 'canceled' && (
+        <div className="mt-3 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onCancel(task.taskId)}
+            disabled={canceling}
+            className="flex-1"
+          >
+            {canceling ? '취소 중...' : '배달 취소'}
+          </Button>
         </div>
       )}
     </div>

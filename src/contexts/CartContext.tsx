@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { CartContextType, CartItem, DeliveryType, DeliveryAddress } from '../types/cart';
+import { calculateDeliveryFee } from '../lib/cart/deliveryFee';
+import deliveryZonesConfig from '../config/delivery-zones.json';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -123,9 +125,53 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setRequestsState(req);
   };
 
-  const applyCoupon = (id: string, discount: number) => {
+  /**
+   * 쿠폰 적용 (유효성 검증 포함)
+   * @param id 쿠폰 ID
+   * @param discount 할인 금액
+   * @param validate 검증 여부 (기본값: false, API 호출 시 true)
+   */
+  const applyCoupon = async (
+    id: string,
+    discount: number,
+    validate: boolean = false
+  ): Promise<boolean> => {
+    if (validate) {
+      // 유효성 검증 수행
+      try {
+        const { validateCoupon } = await import('../lib/coupons.api');
+        const { getCurrentUser } = await import('../lib/auth');
+        
+        const user = getCurrentUser();
+        if (!user) {
+          return false;
+        }
+
+        const subtotal = getSubtotal();
+        const deliveryFee = getDeliveryFee();
+        const orderAmount = subtotal + deliveryFee;
+
+        const validation = await validateCoupon(id, orderAmount, user.uid);
+
+        if (!validation.valid) {
+          console.error('Coupon validation failed:', validation.reason);
+          return false;
+        }
+
+        // 검증 성공 시 적용
+        setCouponId(id);
+        setCouponDiscount(validation.coupon?.amount || discount);
+        return true;
+      } catch (error) {
+        console.error('Failed to validate coupon:', error);
+        return false;
+      }
+    }
+
+    // 검증 없이 적용 (기존 호환성)
     setCouponId(id);
     setCouponDiscount(discount);
+    return true;
   };
 
   const removeCoupon = () => {
@@ -148,16 +194,49 @@ export function CartProvider({ children }: { children: ReactNode }) {
     
     // 최소 주문 금액 미달 시 배달 불가
     if (subtotal < MIN_ORDER_DELIVERY) return 0;
-    
-    // 실제로는 거리 기반 계산
-    // TODO: 주소에서 거리 계산 후 배달비 산정
-    return BASE_DELIVERY_FEE;
+
+    // 배달 주소가 없으면 기본 배달비 반환 (주소 입력 전)
+    if (!deliveryAddress || !deliveryAddress.lat || !deliveryAddress.lng) {
+      return BASE_DELIVERY_FEE; // 기본 배달비 (사용자 안내용)
+    }
+
+    // 거리 기반 배달비 계산
+    const storeLocation = deliveryZonesConfig.storeLocation;
+    const result = calculateDeliveryFee(
+      storeLocation.lat,
+      storeLocation.lng,
+      deliveryAddress.lat,
+      deliveryAddress.lng,
+      deliveryAddress.address,
+      {
+        useNightFee: true,
+        weight: 'normal',
+      }
+    );
+
+    // 배달 불가 지역이면 0 반환
+    if (!result.canDeliver) {
+      return 0;
+    }
+
+    return result.fee;
   };
 
   const getTotalAmount = () => {
     const subtotal = getSubtotal();
     const deliveryFee = getDeliveryFee();
-    return subtotal + deliveryFee - couponDiscount;
+    const total = subtotal + deliveryFee - couponDiscount;
+    // 최소 주문 금액 체크 (0원 이하 방지)
+    return Math.max(0, total);
+  };
+
+  /**
+   * 최소 주문 금액 체크
+   */
+  const canCheckout = (): boolean => {
+    const subtotal = getSubtotal();
+    const minOrder = deliveryType === 'delivery' ? MIN_ORDER_DELIVERY : MIN_ORDER_PICKUP;
+    return subtotal >= minOrder;
   };
 
   return (
@@ -182,6 +261,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         getSubtotal,
         getDeliveryFee,
         getTotalAmount,
+        canCheckout,
       }}
     >
       {children}

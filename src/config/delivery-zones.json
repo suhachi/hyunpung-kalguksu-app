@@ -1,0 +1,53 @@
+{
+  "storeLocation": {
+    "lat": 35.8783,
+    "lng": 128.6264,
+    "address": "대구광역시 달성군 현풍읍 테크노대로7길 20"
+  },
+  "zones": [
+    {
+      "id": "zone-1",
+      "name": "기본 배달권역",
+      "minDistance": 0,
+      "maxDistance": 1000,
+      "baseFee": 3000,
+      "nightFee": 1000,
+      "enabled": true
+    },
+    {
+      "id": "zone-2",
+      "name": "확장 배달권역",
+      "minDistance": 1000,
+      "maxDistance": 3000,
+      "baseFee": 5000,
+      "nightFee": 1500,
+      "enabled": true
+    },
+    {
+      "id": "zone-3",
+      "name": "외곽 배달권역",
+      "minDistance": 3000,
+      "maxDistance": 5000,
+      "baseFee": 7000,
+      "nightFee": 2000,
+      "enabled": true
+    }
+  ],
+  "maxDistance": 5000,
+  "blacklist": [
+    {
+      "address": "대구광역시 달성군 유가읍",
+      "reason": "배달 불가 지역"
+    }
+  ],
+  "nightHours": {
+    "start": 22,
+    "end": 6
+  },
+  "weightMultiplier": {
+    "light": 1.0,
+    "normal": 1.2,
+    "heavy": 1.5
+  }
+}
+

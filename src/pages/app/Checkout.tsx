@@ -13,6 +13,7 @@ import { useCart } from '../../contexts/CartContext';
 import { toast } from 'sonner';
 import { getPointsBalance, spendPoints, POINTS_POLICY } from '../../lib/points.api';
 import { FEATURE_FLAGS, USE_FIREBASE } from '../../config/env';
+import { CouponApply } from '../../components/checkout/CouponApply';
 import type { PaymentMethod } from '../../types/order';
 
 export function Checkout() {
@@ -22,6 +23,7 @@ export function Checkout() {
     deliveryType,
     deliveryAddress,
     requests,
+    couponId,
     couponDiscount,
     getSubtotal,
     getDeliveryFee,
@@ -121,7 +123,37 @@ export function Checkout() {
       // 1. 주문 ID 생성
       const orderId = `ORD${Date.now()}`;
       
-      // 2. 포인트 사용 처리
+      // 2. 쿠폰 사용 처리 (쿠폰이 적용된 경우)
+      let couponSnapshot = undefined;
+      if (couponId) {
+        try {
+          const user = getCurrentUser();
+          if (user) {
+            const coupons = await getCoupons(user.uid);
+            const usedCoupon = coupons.find(c => c.id === couponId);
+            
+            if (usedCoupon) {
+              couponSnapshot = {
+                id: usedCoupon.id!,
+                title: usedCoupon.title,
+                amount: usedCoupon.amount,
+                minSpend: usedCoupon.minSpend,
+                appliedAt: Date.now(),
+              };
+              
+              // 쿠폰 사용 처리
+              const { useCoupon: useCouponAPI } = await import('../../lib/coupons.api');
+              await useCouponAPI(couponId, orderId);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to process coupon:', error);
+          // 쿠폰 처리 실패해도 주문은 진행 (경고만 표시)
+          toast.warning('쿠폰 처리 중 오류가 발생했지만 주문은 계속됩니다');
+        }
+      }
+      
+      // 3. 포인트 사용 처리
       if (usePoints && pointsToUse > 0) {
         try {
           await spendPoints({
@@ -158,6 +190,8 @@ export function Checkout() {
           })),
           subtotal,
           discount: couponDiscount,
+          couponId: couponId || undefined,
+          couponSnapshot,
           pointsDiscount: pointsDiscount,
           deliveryFee,
           finalAmount: totalAmount,
