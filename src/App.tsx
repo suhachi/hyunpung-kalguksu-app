@@ -29,6 +29,7 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminMenus from "./pages/admin/Menus";
 import AdminSettings from "./pages/admin/Settings";
+import { SettingsCenter } from "./pages/admin/Settings/index";
 import AdminPromotions from "./pages/admin/Promotions";
 import AdminAnalytics from "./pages/admin/Analytics";
 import IntegratedAnalytics from "./pages/admin/IntegratedAnalytics";
@@ -99,7 +100,7 @@ export default function App() {
               <Route path="support" element={<AdminSupport />} />
               <Route path="reviews" element={<AdminReviews />} />
               <Route path="menus" element={<AdminMenus />} />
-              <Route path="settings" element={<AdminSettings />} />
+              <Route path="settings" element={<SettingsCenter />} />
               <Route path="promotions" element={<AdminPromotions />} />
               <Route path="points" element={<AdminPoints />} />
               <Route path="analytics" element={<AdminAnalytics />} />
