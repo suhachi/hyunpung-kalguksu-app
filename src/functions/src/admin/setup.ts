@@ -35,12 +35,13 @@ export const adminSetup = functions
         return;
       }
 
-      const { email, role } = (req.body || {}) as { email?: string; role?: string };
+      const { email, role, password } = (req.body || {}) as { email?: string; role?: string; password?: string };
       if (!email) {
         res.status(400).json({ error: 'email is required' });
         return;
       }
       const targetRole = (role || 'owner').toLowerCase();
+      const targetPassword = (password && String(password).trim().length >= 6) ? String(password) : 'test1234';
 
       // 사용자 조회 또는 생성
       let user = null as admin.auth.UserRecord | null;
@@ -50,9 +51,9 @@ export const adminSetup = functions
         user = null;
       }
       if (!user) {
-        user = await admin.auth().createUser({ email, password: 'test1234', emailVerified: true, disabled: false });
+        user = await admin.auth().createUser({ email, password: targetPassword, emailVerified: true, disabled: false });
       } else {
-        await admin.auth().updateUser(user.uid, { password: 'test1234', disabled: false, emailVerified: true });
+        await admin.auth().updateUser(user.uid, { password: targetPassword, disabled: false, emailVerified: true });
       }
 
       // 커스텀 클레임 설정
