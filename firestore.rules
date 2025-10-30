@@ -74,6 +74,20 @@ service cloud.firestore {
       allow create: if isAdmin();
       allow update, delete: if isAdmin();
     }
+
+    // Delivery Tasks (배달 추적)
+    // 관리자만 읽기/쓰기 가능 (관제 화면 전용)
+    // Functions에서만 업데이트 (Webhook)
+    match /deliveryTasks/{taskId} {
+      allow read: if isAdmin();
+      allow write: if false; // Functions only
+    }
+
+    // Delivery Events (Webhook 이벤트 로그, 중복 방지용)
+    match /deliveryEvents/{eventId} {
+      allow read: if isAdmin();
+      allow write: if false; // Functions only
+    }
   }
 }
 

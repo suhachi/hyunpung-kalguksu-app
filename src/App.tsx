@@ -10,10 +10,13 @@ import { Cart } from "./pages/app/Cart";
 import { Checkout } from "./pages/app/Checkout";
 import { OrderTracking } from "./pages/app/OrderTracking";
 import Orders from "./pages/app/Orders";
+import { OrdersList } from "./pages/orders/OrdersList";
+import { OrderDetail } from "./pages/orders/OrderDetail";
 import ReviewWrite from "./pages/app/ReviewWrite";
 import ReviewList from "./pages/app/ReviewList";
 import Coupons from "./pages/app/Coupons";
 import Notifications from "./pages/app/Notifications";
+import { Inbox } from "./pages/notifications/Inbox";
 import NotificationSettings from "./pages/app/NotificationSettings";
 import Support from "./pages/app/Support";
 import Points from "./pages/app/Points";
@@ -26,6 +29,7 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminMenus from "./pages/admin/Menus";
 import AdminSettings from "./pages/admin/Settings";
+import { SettingsCenter } from "./pages/admin/Settings/index";
 import AdminPromotions from "./pages/admin/Promotions";
 import AdminAnalytics from "./pages/admin/Analytics";
 import IntegratedAnalytics from "./pages/admin/IntegratedAnalytics";
@@ -45,11 +49,13 @@ import { APP, ADMIN, BRAND, DEV, AUTH } from "./routes";
 // 접근 가드
 import { RequireAdmin } from "./lib/auth";
 import RequireAuth from "./components/auth/RequireAuth";
+import { FCMInitializer } from "./components/FCMInitializer";
 
 export default function App() {
   return (
     <BrowserRouter>
       <CartProvider>
+        <FCMInitializer />
         <div className="min-h-screen bg-[#F9F6F3]">
           <Routes>
             {/* 고객용 PWA 앱 (메인) */}
@@ -59,12 +65,14 @@ export default function App() {
               <Route path="menu/:menuId" element={<MenuDetail />} />
               <Route path="cart" element={<Cart />} />
               <Route path="checkout" element={<Checkout />} />
-              <Route path="orders" element={<Orders />} />
+              <Route path="orders" element={<OrdersList />} />
+              <Route path="orders/:orderId" element={<OrderDetail />} />
               <Route path="order/:orderId" element={<OrderTracking />} />
               <Route path="review/:orderId" element={<ReviewWrite />} />
               <Route path="reviews" element={<ReviewList />} />
               <Route path="coupons" element={<Coupons />} />
               <Route path="points" element={<Points />} />
+              <Route path="notifications/inbox" element={<Inbox />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="notification-settings" element={<NotificationSettings />} />
               <Route path="support" element={<Support />} />
@@ -92,7 +100,7 @@ export default function App() {
               <Route path="support" element={<AdminSupport />} />
               <Route path="reviews" element={<AdminReviews />} />
               <Route path="menus" element={<AdminMenus />} />
-              <Route path="settings" element={<AdminSettings />} />
+              <Route path="settings" element={<SettingsCenter />} />
               <Route path="promotions" element={<AdminPromotions />} />
               <Route path="points" element={<AdminPoints />} />
               <Route path="analytics" element={<AdminAnalytics />} />

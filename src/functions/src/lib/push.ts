@@ -104,6 +104,7 @@ export async function sendPushToUser(
         title: payload.notification?.title || '',
         body: payload.notification?.body || '',
         data: payload.data || {},
+        deepLink: payload.data?.deepLink || undefined,
         type: payload.data?.type || 'system',
         priority: 'normal',
         read: false,

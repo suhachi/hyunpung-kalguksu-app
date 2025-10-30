@@ -170,35 +170,116 @@ const storage = new MockDeliveryStorage();
 
 /**
  * Mock Delivery Provider 구현
+ * USE_FIREBASE=true일 때 Firestore 사용, false일 때 localStorage 사용
  */
 export const mockDelivery: DeliveryProvider = {
   async createTask(params: CreateTaskParams): Promise<CreateTaskResult> {
     console.log('[MockDelivery] Creating task:', params);
 
-    const task = storage.createTask(params);
+    const { USE_FIREBASE } = await import('../../../config/env');
+    
+    if (USE_FIREBASE) {
+      // Firestore에 배달 태스크 생성
+      const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+      const { db } = await import('../../../lib/firebase');
+      
+      const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const driverId = `driver_${Math.floor(Math.random() * 100)}`;
+      const now = Date.now();
 
-    return {
-      taskId: task.taskId,
-    };
+      const taskData = {
+        orderId: params.orderId,
+        driverId,
+        status: 'created' as DeliveryStatus,
+        eta: BASE_ETA,
+        lastCoord: {
+          lat: params.pickup.lat,
+          lng: params.pickup.lng,
+          at: now,
+        },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'deliveryTasks'), {
+        ...taskData,
+        taskId, // taskId도 필드로 저장
+      });
+
+      return { taskId };
+    } else {
+      // localStorage 사용 (기존 방식)
+      const task = storage.createTask(params);
+      return {
+        taskId: task.taskId,
+      };
+    }
   },
 
   async getTask(taskId: string): Promise<DeliveryTask> {
     console.log('[MockDelivery] Getting task:', taskId);
 
-    const task = storage.getTask(taskId);
-    if (!task) {
-      throw new Error(`Task not found: ${taskId}`);
-    }
+    const { USE_FIREBASE } = await import('../../../config/env');
+    
+    if (USE_FIREBASE) {
+      // Firestore에서 조회
+      const { doc, getDoc } = await import('firebase/firestore');
+      const { db } = await import('../../../lib/firebase');
+      
+      const taskDoc = await getDoc(doc(db, 'deliveryTasks', taskId));
+      
+      if (!taskDoc.exists()) {
+        throw new Error(`Task not found: ${taskId}`);
+      }
 
-    return task;
+      const data = taskDoc.data();
+      return {
+        taskId,
+        orderId: data.orderId || '',
+        driverId: data.driverId,
+        status: data.status || 'created',
+        eta: data.eta,
+        lastCoord: data.lastCoord ? {
+          lat: data.lastCoord.lat,
+          lng: data.lastCoord.lng,
+          at: data.lastCoord.at?.toMillis?.() || data.lastCoord.at || Date.now(),
+        } : undefined,
+        createdAt: data.createdAt?.toMillis?.() || data.createdAt || Date.now(),
+        updatedAt: data.updatedAt?.toMillis?.() || data.updatedAt || Date.now(),
+      };
+    } else {
+      // localStorage 사용
+      const task = storage.getTask(taskId);
+      if (!task) {
+        throw new Error(`Task not found: ${taskId}`);
+      }
+      return task;
+    }
   },
 
   async cancelTask(taskId: string): Promise<void> {
     console.log('[MockDelivery] Canceling task:', taskId);
 
-    const success = storage.cancelTask(taskId);
-    if (!success) {
-      throw new Error(`Task not found: ${taskId}`);
+    const { USE_FIREBASE } = await import('../../../config/env');
+    
+    if (USE_FIREBASE) {
+      // Firestore에서 취소 처리 (Functions의 cancelDeliveryTask 호출 권장)
+      // 또는 직접 업데이트
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../../../lib/firebase');
+      const { serverTimestamp } = await import('firebase/firestore');
+      
+      const taskRef = doc(db, 'deliveryTasks', taskId);
+      await updateDoc(taskRef, {
+        status: 'canceled',
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      // localStorage 사용
+      const success = storage.cancelTask(taskId);
+      if (!success) {
+        throw new Error(`Task not found: ${taskId}`);
+      }
     }
   },
 };
