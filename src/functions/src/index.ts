@@ -472,3 +472,4 @@ export { onMenuImageFinalize } from './images/transform';
 // 관리자 헬스체크
 // ============================================================================
 export { adminHealthCheck } from './admin/health';
+export { adminSetup } from './admin/setup';
