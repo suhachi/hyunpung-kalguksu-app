@@ -13,11 +13,15 @@ const db = admin.firestore();
  */
 const ALLOWED_TRANSITIONS: Record<DeliveryStatus, DeliveryStatus[]> = {
   created: ['assigned', 'canceled'],
+  requested: ['assigned', 'canceled'],
   assigned: ['picked_up', 'canceled'],
+  picked: ['delivering', 'canceled'],
   picked_up: ['delivering', 'canceled'],
   delivering: ['completed', 'canceled'],
   completed: [], // 완료 후 전이 불가
+  delivered: [],
   canceled: [], // 취소 후 전이 불가
+  failed: [],
 };
 
 /**

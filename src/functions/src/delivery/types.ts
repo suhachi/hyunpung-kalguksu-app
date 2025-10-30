@@ -3,12 +3,19 @@ export type DeliveryStatus =
   | 'requested'
   | 'assigned'
   | 'picked'
+  | 'picked_up'
+  | 'delivering'
+  | 'completed'
   | 'delivered'
   | 'canceled'
   | 'failed';
 
 export type WebhookEventType =
   | 'task.created'
+  | 'task.assigned'
+  | 'task.picked_up'
+  | 'task.delivering'
+  | 'task.completed'
   | 'task.updated'
   | 'task.canceled'
   | 'driver.location'
@@ -38,6 +45,13 @@ export interface DeliveryEvent {
   payload?: unknown;
   timestamp: number; // epoch ms
   signature?: string;
+}
+
+export interface WebhookEvent {
+  taskId: string;
+  type: WebhookEventType;
+  timestamp: number; // epoch ms
+  data: any;
 }
 
 
