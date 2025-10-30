@@ -51,6 +51,8 @@ export const adminSetup = functions
       }
       if (!user) {
         user = await admin.auth().createUser({ email, password: 'test1234', emailVerified: true, disabled: false });
+      } else {
+        await admin.auth().updateUser(user.uid, { password: 'test1234', disabled: false, emailVerified: true });
       }
 
       // 커스텀 클레임 설정
