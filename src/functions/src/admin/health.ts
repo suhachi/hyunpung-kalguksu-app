@@ -6,6 +6,13 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
+const HEALTH_CHECK_RUN_OPTIONS = {
+  timeoutSeconds: 10,
+  memory: '256MB' as const,
+  minInstances: 0,
+  maxInstances: 5,
+};
+
 interface HealthCheckResult {
   functions: {
     connected: boolean;
@@ -39,7 +46,10 @@ interface HealthCheckResult {
  * 관리자 헬스체크 (Callable Function)
  * 관리자만 호출 가능
  */
-export const adminHealthCheck = functions.https.onCall(async (data, context) => {
+export const adminHealthCheck = functions
+  .region('asia-northeast3')
+  .runWith(HEALTH_CHECK_RUN_OPTIONS)
+  .https.onCall(async (data, context) => {
   // 인증 확인
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', '인증이 필요합니다.');

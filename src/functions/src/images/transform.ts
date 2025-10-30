@@ -15,8 +15,17 @@ const bucket = storage.bucket();
  * 이미지 최종 업로드 시 트리거
  * menus/{menuId}/{fileName} 경로의 이미지 처리
  */
-export const onMenuImageFinalize = functions.storage
-  .object()
+const IMAGE_TRANSFORM_RUN_OPTIONS = {
+  timeoutSeconds: 300,
+  memory: '1GB' as const,
+  minInstances: 0,
+  maxInstances: 3,
+};
+
+export const onMenuImageFinalize = functions
+  .region('asia-northeast3')
+  .runWith(IMAGE_TRANSFORM_RUN_OPTIONS)
+  .storage.object()
   .onFinalize(async (object) => {
     const filePath = object.name;
     if (!filePath) {
