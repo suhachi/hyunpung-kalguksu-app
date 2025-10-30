@@ -12,6 +12,15 @@ import type { WebhookEvent } from '../../../types/delivery';
 
 const db = admin.firestore();
 
+// Functions 리소스 제한 설정
+const WEBHOOK_RUN_OPTIONS = {
+  timeoutSeconds: 30,
+  memory: '256MB' as const,
+  minInstances: 0,
+  maxInstances: 5,
+  concurrency: 10,
+};
+
 /**
  * Webhook 이벤트 중복 처리 방지 (Idempotency)
  */
@@ -59,7 +68,10 @@ function generateEventId(event: WebhookEvent): string {
  *   - x-webhook-signature: HMAC-SHA256 서명
  * Body: WebhookEvent JSON
  */
-export const deliveryWebhook = functions.https.onRequest(async (req, res) => {
+export const deliveryWebhook = functions
+  .region('asia-northeast3')
+  .runWith(WEBHOOK_RUN_OPTIONS)
+  .https.onRequest(async (req, res) => {
   // CORS 헤더 설정 (서버→서버이지만 필요 시)
   res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
