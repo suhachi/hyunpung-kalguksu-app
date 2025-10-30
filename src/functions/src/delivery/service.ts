@@ -4,7 +4,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import type { DeliveryStatus } from '../../../types/delivery';
+import type { DeliveryStatus } from './types';
 
 const db = admin.firestore();
 

@@ -5,7 +5,7 @@
 
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 import { Readable } from 'stream';
 
 const storage = admin.storage();
@@ -71,9 +71,9 @@ export const onMenuImageFinalize = functions
       const origPath = `menus/${menuId}/${origFileName}`;
       const origFile = bucket.file(origPath);
       await origFile.save(fileBuffer, {
-        contentType: object.contentType || 'image/webp',
-        cacheControl: 'public,max-age=31536000', // 1년
         metadata: {
+          contentType: object.contentType || 'image/webp',
+          cacheControl: 'public,max-age=31536000',
           metadata: {
             ...object.metadata,
             processedBy: 'firebase-functions',
@@ -92,9 +92,9 @@ export const onMenuImageFinalize = functions
       const thumbPath = `menus/${menuId}/thumb_640_${baseName}.webp`;
       const thumbFile = bucket.file(thumbPath);
       await thumbFile.save(thumbBuffer, {
-        contentType: 'image/webp',
-        cacheControl: 'public,max-age=31536000',
         metadata: {
+          contentType: 'image/webp',
+          cacheControl: 'public,max-age=31536000',
           metadata: {
             processedBy: 'firebase-functions',
             type: 'thumbnail',
@@ -115,9 +115,9 @@ export const onMenuImageFinalize = functions
         const resizedPath = `menus/${menuId}/resized_1200_${baseName}.webp`;
         const resizedFile = bucket.file(resizedPath);
         await resizedFile.save(resizedBuffer, {
-          contentType: 'image/webp',
-          cacheControl: 'public,max-age=31536000',
           metadata: {
+            contentType: 'image/webp',
+            cacheControl: 'public,max-age=31536000',
             metadata: {
               processedBy: 'firebase-functions',
               type: 'resized',

@@ -8,7 +8,7 @@ import * as admin from 'firebase-admin';
 import * as crypto from 'crypto';
 import { verifyWebhookSignature, getWebhookSecret, verifyAllowedIP } from './verify';
 import { updateDeliveryTask } from './service';
-import type { WebhookEvent } from '../../../types/delivery';
+import type { WebhookEvent } from './types';
 
 const db = admin.firestore();
 
